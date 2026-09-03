@@ -9,7 +9,7 @@ const DOTS = {
   gold: '#f5b301', rose: '#fb4d6d', teal: '#2dd4bf', midnight: '#5b8cff'
 };
 
-export default function PalettePicker({ palette, setPalette, theme, toggleTheme, palettes }) {
+export default function PalettePicker({ palette, setPalette, theme, toggleTheme, palettes = [] }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-1.5" role="group" aria-label="پالت رنگ">

@@ -22,5 +22,6 @@ export function useTheme() {
   }, [palette, theme]);
 
   const toggleTheme = useCallback(() => setTheme((t) => (t === 'light' ? 'dark' : 'light')), []);
-  return { palette, setPalette, theme, setTheme, toggleTheme, PALETTES };
+  // lowercase `palettes` is what PalettePicker reads (spread via Header).
+  return { palette, setPalette, theme, setTheme, toggleTheme, palettes: PALETTES, PALETTES };
 }
