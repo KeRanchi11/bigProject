@@ -43,7 +43,7 @@ export default function FontPreview({ content, onBack }) {
           >
             {text || '…'}
           </p>
-          {!f.fileUrl && f.googleUrl && <link rel="stylesheet" href={f.googleUrl} />}
+          {!f.fileUrl && f.googleUrl && <link rel="stylesheet" href={f.googleUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />}
         </div>
       ))}
     </section>
