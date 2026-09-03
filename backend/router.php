@@ -10,10 +10,30 @@ $docroot = __DIR__;
 $uri = (string)($_SERVER['REQUEST_URI'] ?? '/');
 $path = parse_url($uri, PHP_URL_PATH) ?? '/';
 
-// Serve real static files (uploads/fonts) directly.
+// Serve uploaded static files directly. NOTE: `return false` would make php -S
+// look in its startup directory (repo root), not backend/ — so stream the file
+// ourselves. Restricted to uploads/ + fonts/ so nothing else leaks.
+$upDir = realpath($docroot . '/uploads');
+$fontDir = realpath($docroot . '/fonts');
 $fsPath = realpath($docroot . $path);
-if ($path !== '/' && $fsPath !== false && str_starts_with($fsPath, realpath($docroot)) && is_file($fsPath)) {
-  return false;
+if ($path !== '/' && $fsPath !== false && is_file($fsPath)) {
+  $allowed = false;
+  foreach ([$upDir, $fontDir] as $base) {
+    if ($base !== false && str_starts_with($fsPath, $base . DIRECTORY_SEPARATOR)) { $allowed = true; break; }
+  }
+  if ($allowed) {
+    $ext = strtolower(pathinfo($fsPath, PATHINFO_EXTENSION));
+    $mime = [
+      'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+      'webp' => 'image/webp', 'gif' => 'image/gif', 'avif' => 'image/avif',
+      'ttf' => 'font/ttf', 'otf' => 'font/otf',
+    ][$ext] ?? 'application/octet-stream';
+    header('Content-Type: ' . $mime);
+    header('Cache-Control: public, max-age=86400');
+    header('Content-Length: ' . filesize($fsPath));
+    readfile($fsPath);
+    return true;
+  }
 }
 
 // Everything under /api goes to the front-controller.
