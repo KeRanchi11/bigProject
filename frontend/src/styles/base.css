@@ -2,13 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-html { font-size: var(--font-size, 15px); }
+/* ---------- spacing system (single source of rhythm) ---------- */
+:root {
+  --gutter: 16px;                            /* page side padding (mobile) */
+  --gap-sec: clamp(1.5rem, 4vw, 2.5rem);     /* space between sections */
+  --gap-grid: clamp(0.75rem, 2.5vw, 1.1rem); /* card grid gaps */
+  --pad-card: clamp(1rem, 3vw, 1.5rem);      /* default card padding */
+  --pad-lg: clamp(1.25rem, 4vw, 2rem);       /* hero panels, contact */
+}
+@media (min-width: 768px) {
+  :root { --gutter: 24px; }
+}
+
+html { font-size: var(--font-size, 15px); scroll-padding-top: 84px; }
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: 'Vazirmatn', Tahoma, sans-serif;
   margin: 0;
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 /* Light, GPU-cheap background: 2 radial washes + grid. No blur(100px). */
@@ -28,19 +41,37 @@ body {
 }
 @media (prefers-reduced-motion: reduce) { .soft-bg::before, .soft-bg::after { opacity: 0.25; } }
 
-.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+/* Page frame: logical props (RTL-safe), responsive gutters */
+.wrap { max-width: 1120px; margin-inline: auto; padding-inline: var(--gutter); }
+/* Standalone pages (price / fonts / admin / login): one symmetric rhythm */
+.page { padding-block: var(--gap-sec); }
+/* Home stacking: even gaps, never doubled */
+.flow > * + * { margin-top: var(--gap-sec); }
+/* Tight internal stacks (gallery controls, forms) */
+.stack-sm > * + * { margin-top: 1rem; }
+.hero-top { padding-top: clamp(0.5rem, 3vw, 1.25rem); }
+.foot { padding-bottom: var(--gap-sec); }
+section[id] { scroll-margin-top: 84px; }
+
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
-.btn-acc { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #14100c; font-weight: 800; border: 0; border-radius: 12px; padding: 10px 18px; cursor: pointer; }
+/* Card padding scale: tight = p-3 (dense rows), pad = default panels, pad-lg = hero/contact */
+.pad, .card-pad { padding: var(--pad-card); }
+.pad-lg { padding: var(--pad-lg); }
+.btn-acc, .btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 44px; border-radius: 12px; cursor: pointer;
+}
+.btn-acc { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #14100c; font-weight: 800; border: 0; padding: 11px 20px; }
 [data-theme='light'] .btn-acc { color: #fff; }
-.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; cursor: pointer; }
-.inp, .sel { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; width: 100%; }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); padding: 11px 18px; }
+.inp, .sel { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; width: 100%; }
 .mut { color: var(--mut); }
 .site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--line); }
 .site-header.scrolled { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); }
-.grid-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
-.gal-img { width: 100%; height: 220px; object-fit: cover; border-radius: 12px 12px 0 0; display: block; }
-.chip { border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.grid-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--gap-grid); }
+.gal-img { width: 100%; height: clamp(180px, 42vw, 230px); object-fit: cover; border-radius: 12px 12px 0 0; display: block; }
+.chip { display: inline-flex; align-items: center; min-height: 40px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; }
 .chip.on { background: var(--acc); border-color: transparent; color: #16110c; font-weight: 700; }
-.sw { width: 26px; height: 26px; border-radius: 999px; border: 2px solid transparent; cursor: pointer; }
+.sw { width: 28px; height: 28px; border-radius: 999px; border: 2px solid transparent; cursor: pointer; }
 .sw.on { border-color: #fff; outline: 2px solid var(--acc); }
 .neon-demo { font-weight: 900; line-height: 1.6; }

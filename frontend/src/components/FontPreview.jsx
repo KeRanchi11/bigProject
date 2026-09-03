@@ -15,9 +15,9 @@ export default function FontPreview({ content, onBack }) {
   }).join('\n'), [fonts]);
 
   return (
-    <section className="wrap py-6">
+    <section className="wrap page">
       <button className="btn-ghost mb-4" onClick={onBack}>→ بازگشت</button>
-      <div className="card p-5 mb-4 grid md:grid-cols-4 gap-3">
+      <div className="card card-pad mb-4 grid md:grid-cols-4 gap-3">
         <input className="inp md:col-span-2" value={text} onChange={(e) => setText(e.target.value)} placeholder="متن تابلو…" />
         <label className="text-sm mut flex items-center gap-2">اندازه
           <input type="range" min={20} max={110} value={size} onChange={(e) => setSize(+e.target.value)} className="grow" />
@@ -30,7 +30,7 @@ export default function FontPreview({ content, onBack }) {
       </div>
       <style>{css}</style>
       {fonts.map((f) => (
-        <div key={f.family || f.name} className="card p-6 mb-3 text-center overflow-hidden">
+        <div key={f.family || f.name} className="card card-pad mb-3 text-center overflow-hidden">
           <p className="mut text-xs mb-2">{f.name}</p>
           <p
             className="neon-demo break-words"

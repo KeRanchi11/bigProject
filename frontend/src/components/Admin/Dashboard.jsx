@@ -69,7 +69,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   };
 
   return (
-    <section className="wrap py-6">
+    <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {[['projects', 'نمونه‌کارها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
@@ -80,7 +80,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
 
       {tab === 'projects' && (
         <>
-          <form onSubmit={uploadThenCreate} className="card p-4 grid md:grid-cols-5 gap-2 mb-4">
+          <form onSubmit={uploadThenCreate} className="card card-pad grid md:grid-cols-5 gap-2 mb-4">
             <input className="inp md:col-span-2" placeholder="عنوان نمونه‌کار" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
             <select className="sel" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
               {CATS.map((c) => <option key={c}>{c}</option>)}
@@ -109,7 +109,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
       )}
 
       {tab === 'settings' && (
-        <div className="card p-5 grid gap-3 max-w-xl">
+        <div className="card card-pad grid gap-3 max-w-xl">
           <label className="text-sm">نام برند<input className="inp mt-1" value={brand} onChange={(e) => setBrand(e.target.value)} /></label>
           <label className="text-sm">واتساپ (فقط عدد، مثل 989121234567)<input className="inp mt-1" value={wa} onChange={(e) => setWa(e.target.value)} dir="ltr" /></label>
           <button className="btn-acc" onClick={saveSettings}>ذخیره تنظیمات</button>
@@ -117,7 +117,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
       )}
 
       {tab === 'password' && (
-        <div className="card p-5 grid gap-3 max-w-xl">
+        <div className="card card-pad grid gap-3 max-w-xl">
           <label className="text-sm">رمز فعلی<input className="inp mt-1" type="password" value={cur} onChange={(e) => setCur(e.target.value)} /></label>
           <label className="text-sm">رمز جدید (حداقل ۸ حرف)<input className="inp mt-1" type="password" value={nw} onChange={(e) => setNw(e.target.value)} /></label>
           <button className="btn-acc" onClick={changePass}>تغییر رمز</button>

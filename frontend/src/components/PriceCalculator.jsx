@@ -26,10 +26,10 @@ export default function PriceCalculator({ content, onBack, notify }) {
   };
 
   return (
-    <section className="wrap py-6">
+    <section className="wrap page">
       <button className="btn-ghost mb-4" onClick={onBack}>→ بازگشت</button>
       <div className="grid md:grid-cols-5 gap-4">
-        <div className="card p-5 md:col-span-3 grid gap-4">
+        <div className="card card-pad md:col-span-3 grid gap-4">
           <div>
             <h3 className="font-extrabold mb-2">نوع تابلو</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -60,7 +60,7 @@ export default function PriceCalculator({ content, onBack, notify }) {
           </div>
         </div>
         <div className="md:col-span-2">
-          <div className="card p-5 sticky top-20">
+          <div className="card card-pad sticky top-20">
             <h3 className="font-extrabold mb-3">خلاصه قیمت</h3>
             <div className="grid gap-2 text-sm">
               <div className="flex justify-between"><span className="mut">پایه ({rule.label})</span><b>{faPrice(rule.base)}</b></div>

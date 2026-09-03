@@ -1,6 +1,6 @@
 export default function Hero({ content, onCta, onGallery }) {
   return (
-    <section className="wrap pt-10 pb-6 grid md:grid-cols-2 gap-8 items-center">
+    <section className="grid md:grid-cols-2 gap-6 md:gap-8 items-center hero-top">
       <div>
         <p className="mut text-sm mb-2">{content.heroEyebrow || 'طراحی شده برای دیده شدن'}</p>
         <h1 className="text-4xl md:text-5xl font-black leading-[1.4] mb-3">
@@ -18,7 +18,7 @@ export default function Hero({ content, onCta, onGallery }) {
           <span className="mut">{content.heroProofText || 'پروژه موفق در سراسر ایران'}</span>
         </div>
       </div>
-      <div className="card p-8 text-center">
+      <div className="card pad-lg text-center">
         <div className="neon-demo text-3xl mb-1" style={{ color: 'var(--acc)', textShadow: '0 0 18px var(--glow), 0 0 46px var(--glow)' }}>
           SHINE BRIGHT
         </div>

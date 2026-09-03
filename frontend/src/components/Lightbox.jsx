@@ -21,7 +21,7 @@ export default function Lightbox({ project, all, liked, count, onClose, onPrev, 
           <img src={project.image} alt={project.title} className="w-full max-h-[60vh] object-contain bg-black" />
           <button onClick={onClose} aria-label="بستن" className="absolute top-3 left-3 card !rounded-full p-2"><X size={18} /></button>
         </div>
-        <div className="p-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="pad flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="font-extrabold">{project.title}</h3>
             <p className="mut text-sm mt-1">{project.category}{project.location?.address ? ' — ' + project.location.address : ''}</p>

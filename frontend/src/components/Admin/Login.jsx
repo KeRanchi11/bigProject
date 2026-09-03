@@ -20,8 +20,8 @@ export default function Login({ onOk, notify }) {
   };
 
   return (
-    <section className="wrap py-10 max-w-md">
-      <form onSubmit={submit} className="card p-6 grid gap-3">
+    <section className="wrap page">
+      <form onSubmit={submit} className="card card-pad grid gap-3 max-w-md w-full mx-auto">
         <h2 className="font-black text-xl">ورود مدیر</h2>
         <p className="mut text-sm leading-6">نشست امن با کوکی httpOnly. پس از نصب، رمز پیش‌فرض را عوض کنید.</p>
         <label className="text-sm">نام کاربری<input className="inp mt-1" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" /></label>

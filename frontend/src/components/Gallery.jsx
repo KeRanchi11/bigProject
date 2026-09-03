@@ -16,8 +16,8 @@ export default function Gallery({ hook, likes, onOpen, notify }) {
   const pages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <section id="gallery" className="wrap py-6">
-      <div className="flex flex-wrap items-center gap-2 mb-4">
+    <section id="gallery" className="stack-sm">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative grow min-w-[220px]">
           <input className="inp !pr-10" placeholder="جست‌وجو در نمونه‌کارها…" value={box} onChange={(e) => setBox(e.target.value)} />
           <Search size={17} className="absolute right-3 top-1/2 -translate-y-1/2 mut" />
@@ -27,7 +27,7 @@ export default function Gallery({ hook, likes, onOpen, notify }) {
           <option value="popular">پرطرفدارترین</option>
         </select>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+      <div className="flex gap-2 overflow-x-auto pb-2">
         {cats.map((c) => (
           <button key={c} onClick={() => { setCategory(c); setPage(1); }} className={'chip' + (category === c ? ' on' : '')}>{c}</button>
         ))}
@@ -35,7 +35,7 @@ export default function Gallery({ hook, likes, onOpen, notify }) {
       {loading ? (
         <div className="grid-gal">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="card h-64 animate-pulse" />)}</div>
       ) : projects.length === 0 ? (
-        <div className="card p-10 text-center mut">نمونه‌کاری پیدا نشد. عبارت دیگری را امتحان کنید.</div>
+        <div className="card pad-lg text-center mut">نمونه‌کاری پیدا نشد. عبارت دیگری را امتحان کنید.</div>
       ) : (
         <>
           <div className="grid-gal">
@@ -65,7 +65,7 @@ export default function Gallery({ hook, likes, onOpen, notify }) {
               );
             })}
           </div>
-          <div className="flex items-center justify-center gap-3 mt-5 text-sm">
+          <div className="flex items-center justify-center gap-3 text-sm">
             <button className="btn-ghost" disabled={page <= 1} onClick={() => setPage(page - 1)}>قبلی</button>
             <span className="mut">صفحه {faNum(page)} از {faNum(pages)} — {faNum(total)} نمونه‌کار</span>
             <button className="btn-ghost" disabled={page >= pages} onClick={() => setPage(page + 1)}>بعدی</button>

@@ -15,8 +15,8 @@ export default function Contact({ content, notify }) {
   };
 
   return (
-    <section id="contact" className="wrap py-8">
-      <div className="card p-6 md:p-8 grid md:grid-cols-2 gap-6">
+    <section id="contact">
+      <div className="card pad-lg grid md:grid-cols-2 gap-5 md:gap-6">
         <div>
           <p className="mut text-sm mb-1">{content.contactEyebrow || 'وقتشه بدرخشید'}</p>
           <h2 className="text-3xl font-black leading-[1.6] mb-2">

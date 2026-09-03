@@ -60,7 +60,7 @@ export default function App() {
       <Header content={content} themeProps={themeProps} onNav={scrollTo} onAdmin={() => scrollTo('admin')} />
 
       {page === 'home' && (
-        <main>
+        <main className="wrap page flow">
           <Hero content={content} onCta={() => scrollTo('contact')} onGallery={() => scrollTo('gallery')} />
           <FeaturedSlider items={allForSlider} onOpen={setSelectedId} />
           <Gallery hook={projectsHook} likes={likes} onOpen={setSelectedId} notify={notify} />

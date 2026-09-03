@@ -21,7 +21,7 @@ export default function FeaturedSlider({ items, onOpen }) {
   const cur = show[i % show.length];
 
   return (
-    <section className="wrap mb-6" aria-label="منتخب‌ها">
+    <section aria-label="منتخب‌ها">
       <div className="card overflow-hidden relative">
         <button onClick={() => onOpen(cur.id)} className="block w-full text-right">
           <img src={cur.image} alt={cur.title} loading="lazy" className="w-full h-64 md:h-80 object-cover" />

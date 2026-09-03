@@ -1,6 +1,6 @@
 export default function About({ content }) {
   return (
-    <section id="about" className="wrap py-8 grid md:grid-cols-2 gap-6 items-center">
+    <section id="about" className="grid md:grid-cols-2 gap-6 items-center">
       <div>
         <p className="mut text-sm mb-1">{content.aboutEyebrow || 'داستان ما'}</p>
         <h2 className="text-3xl font-black leading-[1.6] mb-3">
