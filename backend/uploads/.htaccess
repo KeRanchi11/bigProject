@@ -1,0 +1,6 @@
+# Uploads must never execute PHP (shared hosting hardening)
+php_flag engine off
+RemoveHandler .php .phtml .php3 .php4 .php5
+<FilesMatch "\.(php|phtml|phar|pl|py|sh)$">
+  Require all denied
+</FilesMatch>

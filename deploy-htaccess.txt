@@ -1,0 +1,25 @@
+# public_html/.htaccess template for cPanel (copy built frontend + this file to public_html)
+# Serves React dist + /api (PHP) + /uploads + /fonts. SPA fallback for non-API routes.
+RewriteEngine On
+
+# Cache static assets lightly (cheap shared-host performance win)
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
+
+# Protect backend internals if uploaded by mistake
+RewriteRule ^(includes|config|sql)/ - [F,L]
+RewriteRule ^install\.php$ - [F,L]
+
+# SPA fallback: everything that is not a file/dir/api/uploads/fonts -> index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteCond %{REQUEST_URI} !^/uploads/
+RewriteCond %{REQUEST_URI} !^/fonts/
+RewriteRule ^ index.html [L]

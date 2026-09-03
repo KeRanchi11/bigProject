@@ -1,0 +1,26 @@
+/* 8 color palettes via CSS vars + light/dark. Persisted by useTheme (data-palette + data-theme on <html>). */
+/* Default: ember dark. All palettes Persian-friendly, high contrast, light footprint. */
+
+:root {
+  --radius: 14px;
+  --font-size: 15px;
+}
+
+[data-palette='ember'] { --bg: #121014; --card: #1c191d; --line: #2e2830; --ink: #f6f1ea; --mut: #b9aea3; --acc: #ff5a3c; --acc2: #ffb03c; --glow: rgba(255, 90, 60, 0.35); }
+[data-palette='ocean'] { --bg: #0b141b; --card: #122029; --line: #1e3442; --ink: #eef7fa; --mut: #9db8c4; --acc: #22b8e6; --acc2: #5eead4; --glow: rgba(34, 184, 230, 0.3); }
+[data-palette='forest'] { --bg: #0e1510; --card: #152019; --line: #233427; --ink: #eef5ec; --mut: #a3b8a6; --acc: #4ade80; --acc2: #facc15; --glow: rgba(74, 222, 128, 0.28); }
+[data-palette='violet'] { --bg: #130f1d; --card: #1c1530; --line: #2e2350; --ink: #f2edff; --mut: #b3a6d9; --acc: #a78bfa; --acc2: #f472b6; --glow: rgba(167, 139, 250, 0.32); }
+[data-palette='gold'] { --bg: #141109; --card: #1e190e; --line: #332913; --ink: #faf3e3; --mut: #c2b28c; --acc: #f5b301; --acc2: #ff7a1a; --glow: rgba(245, 179, 1, 0.3); }
+[data-palette='rose'] { --bg: #170f14; --card: #22141c; --line: #38222d; --ink: #fbeef3; --mut: #c9a3b2; --acc: #fb4d6d; --acc2: #fb923c; --glow: rgba(251, 77, 109, 0.3); }
+[data-palette='teal'] { --bg: #0b1516; --card: #102122; --line: #1c3839; --ink: #e9f6f4; --mut: #98b8b4; --acc: #2dd4bf; --acc2: #a3e635; --glow: rgba(45, 212, 191, 0.28); }
+[data-palette='midnight'] { --bg: #0a0f22; --card: #111737; --line: #1f2a5e; --ink: #eaf0ff; --mut: #9aa8d0; --acc: #5b8cff; --acc2: #c084fc; --glow: rgba(91, 140, 255, 0.32); }
+
+/* Light theme: lift bg/card, darken ink. Keeps same accent per palette. */
+[data-theme='light'][data-palette='ember'] { --bg: #faf6f1; --card: #ffffff; --line: #eadfd3; --ink: #221a14; --mut: #7a6a5c; }
+[data-theme='light'][data-palette='ocean'] { --bg: #f1f8fb; --card: #ffffff; --line: #d8e9ef; --ink: #0e222c; --mut: #55707c; }
+[data-theme='light'][data-palette='forest'] { --bg: #f2f7f1; --card: #ffffff; --line: #d9e7d6; --ink: #14231a; --mut: #5c7260; }
+[data-theme='light'][data-palette='violet'] { --bg: #f5f2fd; --card: #ffffff; --line: #e0d7f5; --ink: #221840; --mut: #6f6391; }
+[data-theme='light'][data-palette='gold'] { --bg: #faf5e8; --card: #ffffff; --line: #eadfc3; --ink: #2a2111; --mut: #7c6c46; }
+[data-theme='light'][data-palette='rose'] { --bg: #fdf2f5; --card: #ffffff; --line: #f2d5de; --ink: #30141d; --mut: #8a5f6d; }
+[data-theme='light'][data-palette='teal'] { --bg: #eef8f6; --card: #ffffff; --line: #cfe7e2; --ink: #0f2422; --mut: #52706c; }
+[data-theme='light'][data-palette='midnight'] { --bg: #eef2fb; --card: #ffffff; --line: #d3ddf2; --ink: #141f3d; --mut: #5a6a94; }

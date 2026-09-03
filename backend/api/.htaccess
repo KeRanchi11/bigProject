@@ -1,0 +1,16 @@
+RewriteEngine On
+# cPanel shared: clean /api/* URLs -> index.php (also supports ?route= fallback)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "same-origin"
+</IfModule>
+
+# Deny direct access to includes/config if copied inside docroot by mistake
+<FilesMatch "^(config|bootstrap|db|auth)\.php$">
+  Require all denied
+</FilesMatch>

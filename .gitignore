@@ -1,0 +1,26 @@
+# Deps / build
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# PHP / cPanel
+backend/config/config.php
+backend/uploads/*
+!backend/uploads/.gitkeep
+!backend/uploads/.htaccess
+backend/fonts/*
+!backend/fonts/.gitkeep
+!backend/fonts/.htaccess
+
+# Env / secrets
+.env
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Git
+*.orig
