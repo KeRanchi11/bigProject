@@ -15,8 +15,6 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [brand, setBrand] = useState(content.brandName || '');
   const [wa, setWa] = useState(content.whatsapp || '');
   const [pal, setPal] = useState(content.activePalette || 'ember');
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoBusy, setLogoBusy] = useState(false);
   const [fontQueue, setFontQueue] = useState([]);
   const [fontBusy, setFontBusy] = useState('');
 
@@ -65,25 +63,6 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const saveSettings = async () => {
     await onContent({ brandName: brand, whatsapp: wa, activePalette: pal });
     notify('تنظیمات ذخیره شد — پالت جدید برای همه اعمال شد');
-  };
-
-  // Single logo record: upload replaces logoUrl in DB; server deletes the old file.
-  const uploadLogo = async () => {
-    if (!logoFile || logoBusy) return;
-    setLogoBusy(true);
-    try {
-      const j = await api.uploadImage(logoFile);
-      await onContent({ logoUrl: j.url });
-      setLogoFile(null);
-      notify('لوگو جایگزین شد');
-    } catch { notify('خطا در آپلود لوگو'); }
-    finally { setLogoBusy(false); }
-  };
-
-  const removeLogo = async () => {
-    if (!confirm('لوگو حذف شود؟')) return;
-    await onContent({ logoUrl: '' });
-    notify('لوگو حذف شد');
   };
 
   const uploadFonts = async () => {
@@ -203,18 +182,6 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
         <div className="card card-pad grid gap-3 max-w-xl">
           <label className="text-sm">نام برند<input className="inp mt-1" value={brand} onChange={(e) => setBrand(e.target.value)} /></label>
           <label className="text-sm">واتساپ (فقط عدد، مثل 989121234567)<input className="inp mt-1" value={wa} onChange={(e) => setWa(e.target.value)} dir="ltr" /></label>
-          <div className="text-sm">لوگوی سایت (تک‌رکورد — آپلود جدید جایگزین قبلی می‌شود)
-            <div className="flex items-center gap-3 mt-2">
-              {content.logoUrl
-                ? <img src={content.logoUrl} alt="لوگوی سایت" className="h-14 w-14 rounded-xl object-cover border" style={{ borderColor: 'var(--line)' }} />
-                : <span className="mut text-xs">بدون لوگو (آیکون پیش‌فرض)</span>}
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-            </div>
-            <div className="flex gap-2 mt-2">
-              <button className="btn-acc !min-h-0 !py-2 !px-4 text-sm" disabled={!logoFile || logoBusy} onClick={uploadLogo}>{logoBusy ? '…' : 'آپلود و جایگزینی لوگو'}</button>
-              {content.logoUrl && <button className="btn-ghost !min-h-0 !py-2 !px-4 text-sm" onClick={removeLogo}>حذف لوگو</button>}
-            </div>
-          </div>
           <div className="text-sm">پالت رنگ سایت (برای همه کاربران)
             <div className="flex items-center gap-2 mt-2">
               {PALETTE_META.map((m) => (

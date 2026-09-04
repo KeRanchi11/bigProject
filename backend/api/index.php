@@ -209,14 +209,6 @@ try {
     if (!is_array($b) || $b === []) json_err('empty', 400);
     $allow = ['brandName','slogan','copyright','logoUrl','navItems','headerCta','heroEyebrow','heroHeadline1','heroHeadline2','heroDescription','heroCta','heroProofNumber','heroProofText','heroProofAvatars','aboutEyebrow','aboutHeadline1','aboutHeadline2','aboutDescription','aboutImage','aboutBadgeNumber','aboutBadgeLine1','aboutBadgeLine2','aboutValues','contactEyebrow','contactHeadline1','contactHeadline2','contactDescription','contactMethods','footerAdminLabel','categories','signFonts','defaultSignFont','fontFamily','fontSize','activePalette','whatsapp','phone','instagram','address'];
     $db = pdo();
-    // Logo is a singleton: remember the current one so a replacement deletes the old file.
-    $oldLogo = null;
-    if (array_key_exists('logoUrl', $b)) {
-      $q = $db->prepare('SELECT `value` FROM site_content WHERE `key` = ?');
-      $q->execute(['logoUrl']);
-      $r = $q->fetch();
-      $oldLogo = $r ? (string)$r['value'] : '';
-    }
     $st = $db->prepare('INSERT INTO site_content (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)');
     foreach ($b as $k => $v) {
       if (!in_array((string)$k, $allow, true)) continue;
@@ -226,18 +218,6 @@ try {
       // sanitize URL-ish keys
       if (in_array((string)$k, ['logoUrl','aboutImage'], true)) $val = clean_url($val);
       $st->execute([(string)$k, (string)$val]);
-    }
-    // Single logo record: the upsert above replaces it; remove the orphaned old file.
-    if ($oldLogo !== null) {
-      $newLogo = clean_url($b['logoUrl'] ?? '');
-      if ($oldLogo !== '' && $oldLogo !== $newLogo && str_starts_with($oldLogo, '/uploads/')) {
-        $base = basename($oldLogo);
-        if (preg_match('/^[a-f0-9]{16}\.(jpg|png|webp|gif|avif)$/i', $base)) {
-          $f = uploads_dir() . '/' . $base;
-          // Retry once: on Windows a just-written file can be briefly locked (AV/indexer).
-          if (is_file($f) && !@unlink($f)) { usleep(300000); @unlink($f); }
-        }
-      }
     }
     json_ok(['success' => true]);
   }
