@@ -9,7 +9,8 @@ export const DEFAULT_CONTENT = {
   heroDescription: 'ما برای برندهایی تابلو می‌سازیم که می‌خواهند در ذهن‌ها بمانند.',
   heroCta: 'شروع یک همکاری',
   headerCta: 'مشاوره رایگان',
-  whatsapp: '989121234567'
+  whatsapp: '989121234567',
+  activePalette: 'ember'
 };
 
 function parseContent(raw) {

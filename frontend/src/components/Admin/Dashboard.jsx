@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { PALETTE_META } from '../ui/PalettePicker';
 
 const CATS = ['نئون', 'سردر فروشگاه', 'حروف برجسته', 'بیلبورد'];
 
@@ -13,6 +14,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [nw, setNw] = useState('');
   const [brand, setBrand] = useState(content.brandName || '');
   const [wa, setWa] = useState(content.whatsapp || '');
+  const [pal, setPal] = useState(content.activePalette || 'ember');
 
   const load = async () => {
     try {
@@ -55,8 +57,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   };
 
   const saveSettings = async () => {
-    await onContent({ brandName: brand, whatsapp: wa });
-    notify('تنظیمات ذخیره شد');
+    await onContent({ brandName: brand, whatsapp: wa, activePalette: pal });
+    notify('تنظیمات ذخیره شد — پالت جدید برای همه اعمال شد');
   };
 
   const changePass = async () => {
@@ -112,6 +114,15 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
         <div className="card card-pad grid gap-3 max-w-xl">
           <label className="text-sm">نام برند<input className="inp mt-1" value={brand} onChange={(e) => setBrand(e.target.value)} /></label>
           <label className="text-sm">واتساپ (فقط عدد، مثل 989121234567)<input className="inp mt-1" value={wa} onChange={(e) => setWa(e.target.value)} dir="ltr" /></label>
+          <div className="text-sm">پالت رنگ سایت (برای همه کاربران)
+            <div className="flex items-center gap-2 mt-2">
+              {PALETTE_META.map((m) => (
+                <button key={m.id} type="button" title={m.name} aria-label={m.name} onClick={() => setPal(m.id)} className={'sw' + (pal === m.id ? ' on' : '')} style={{ background: m.dot }} />
+              ))}
+              <span className="mut text-xs">{(PALETTE_META.find((m) => m.id === pal) || {}).name || pal}</span>
+            </div>
+            <p className="mut text-xs leading-6 mt-1">روشن/تیره همچنان انتخاب هر کاربر است و تغییر نمی‌کند.</p>
+          </div>
           <button className="btn-acc" onClick={saveSettings}>ذخیره تنظیمات</button>
         </div>
       )}

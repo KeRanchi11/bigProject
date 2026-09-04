@@ -37,7 +37,7 @@ export default function Header({ content, themeProps, onNav, onAdmin }) {
           <button onClick={() => go('fonts')} className="mut hover:text-[var(--ink)]">پیش‌نمایش فونت</button>
         </nav>
         <div className="hidden md:flex items-center gap-2">
-          <PalettePicker {...themeProps} />
+          <PalettePicker theme={themeProps.theme} toggleTheme={themeProps.toggleTheme} />
           <button className="btn-acc" onClick={() => go('contact')}>{content.headerCta || 'مشاوره رایگان'}</button>
         </div>
         <button className="md:hidden btn-ghost !px-3 !py-2" onClick={() => setOpen((o) => !o)} aria-label="منو" aria-expanded={open}>
@@ -49,7 +49,7 @@ export default function Header({ content, themeProps, onNav, onAdmin }) {
           {[['gallery', 'نمونه‌کارها'], ['about', 'درباره ما'], ['contact', 'تماس'], ['price', 'محاسبه قیمت'], ['fonts', 'پیش‌نمایش فونت']].map(([id, label]) => (
             <button key={id} onClick={() => go(id)} className="card px-4 py-3 text-right">{label}</button>
           ))}
-          <PalettePicker {...themeProps} />
+          <PalettePicker theme={themeProps.theme} toggleTheme={themeProps.toggleTheme} />
           <button className="btn-ghost" onClick={onAdmin}>ورود مدیر</button>
         </div>
       )}

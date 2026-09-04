@@ -1,27 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 
 export const PALETTES = ['ember', 'ocean', 'forest', 'violet', 'gold', 'rose', 'teal', 'midnight'];
-const P_KEY = 'bigproject-palette';
 const T_KEY = 'bigproject-theme';
 
-export function useTheme() {
-  const [palette, setPalette] = useState(() => {
-    try { return localStorage.getItem(P_KEY) || 'ember'; } catch { return 'ember'; }
-  });
+// Palette is GLOBAL: controlled by admin via site content (activePalette).
+// Light/dark stays per-user in localStorage.
+export function useTheme(globalPalette) {
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem(T_KEY) || 'dark'; } catch { return 'dark'; }
   });
+  const palette = PALETTES.includes(globalPalette) ? globalPalette : 'ember';
 
   useEffect(() => {
-    document.documentElement.dataset.palette = PALETTES.includes(palette) ? palette : 'ember';
+    document.documentElement.dataset.palette = palette;
     document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
-    try {
-      localStorage.setItem(P_KEY, palette);
-      localStorage.setItem(T_KEY, theme);
-    } catch { /* ignore */ }
+    try { localStorage.setItem(T_KEY, theme); } catch { /* ignore */ }
   }, [palette, theme]);
 
   const toggleTheme = useCallback(() => setTheme((t) => (t === 'light' ? 'dark' : 'light')), []);
-  // lowercase `palettes` is what PalettePicker reads (spread via Header).
-  return { palette, setPalette, theme, setTheme, toggleTheme, palettes: PALETTES, PALETTES };
+  return { palette, theme, setTheme, toggleTheme, palettes: PALETTES, PALETTES };
 }

@@ -206,12 +206,13 @@ try {
     require_admin();
     $b = read_json_body();
     if (!is_array($b) || $b === []) json_err('empty', 400);
-    $allow = ['brandName','slogan','copyright','logoUrl','navItems','headerCta','heroEyebrow','heroHeadline1','heroHeadline2','heroDescription','heroCta','heroProofNumber','heroProofText','heroProofAvatars','aboutEyebrow','aboutHeadline1','aboutHeadline2','aboutDescription','aboutImage','aboutBadgeNumber','aboutBadgeLine1','aboutBadgeLine2','aboutValues','contactEyebrow','contactHeadline1','contactHeadline2','contactDescription','contactMethods','footerAdminLabel','categories','signFonts','defaultSignFont','fontFamily','fontSize','whatsapp','phone','instagram','address'];
+    $allow = ['brandName','slogan','copyright','logoUrl','navItems','headerCta','heroEyebrow','heroHeadline1','heroHeadline2','heroDescription','heroCta','heroProofNumber','heroProofText','heroProofAvatars','aboutEyebrow','aboutHeadline1','aboutHeadline2','aboutDescription','aboutImage','aboutBadgeNumber','aboutBadgeLine1','aboutBadgeLine2','aboutValues','contactEyebrow','contactHeadline1','contactHeadline2','contactDescription','contactMethods','footerAdminLabel','categories','signFonts','defaultSignFont','fontFamily','fontSize','activePalette','whatsapp','phone','instagram','address'];
     $db = pdo();
     $st = $db->prepare('INSERT INTO site_content (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)');
     foreach ($b as $k => $v) {
       if (!in_array((string)$k, $allow, true)) continue;
       $val = is_string($v) ? $v : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+      if ((string)$k === 'activePalette' && !in_array($val, ALLOWED_PALETTES, true)) continue;
       if (mb_strlen((string)$val) > 200000) continue;
       // sanitize URL-ish keys
       if (in_array((string)$k, ['logoUrl','aboutImage'], true)) $val = clean_url($val);

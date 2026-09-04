@@ -66,6 +66,7 @@ try {
     'fontFamily' => 'Vazirmatn',
     'fontSize' => '15',
     'whatsapp' => '989121234567',
+    'activePalette' => 'ember',
   ];
   $ins = $db->prepare('INSERT IGNORE INTO site_content (`key`, `value`) VALUES (?, ?)');
   foreach ($defaults as $k => $v) $ins->execute([$k, $v]);

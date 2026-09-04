@@ -22,7 +22,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 
 export default function App() {
-  const themeProps = useTheme();
+  const themeProps = useTheme(content.activePalette);
   const { content, save, loading: contentLoading } = useContent();
   const projectsHook = useProjects();
   const likes = useLikes();

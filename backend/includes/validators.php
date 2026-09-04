@@ -5,6 +5,7 @@ declare(strict_types=1);
 const VISITOR_RE = '/^[A-Za-z0-9_\-]{8,64}$/';
 const ALLOWED_CATEGORIES = ['نئون', 'سردر فروشگاه', 'حروف برجسته', 'بیلبورد'];
 const ALLOWED_SORTS = ['new', 'popular'];
+const ALLOWED_PALETTES = ['ember', 'ocean', 'forest', 'violet', 'gold', 'rose', 'teal', 'midnight'];
 
 function valid_visitor(?string $id): bool {
   return is_string($id) && (bool)preg_match(VISITOR_RE, $id);
