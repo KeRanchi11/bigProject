@@ -17,6 +17,9 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [pal, setPal] = useState(content.activePalette || 'ember');
   const [logoFile, setLogoFile] = useState(null);
   const [logoBusy, setLogoBusy] = useState(false);
+  const [aboutForm, setAboutForm] = useState(null);
+  const [aboutFile, setAboutFile] = useState(null);
+  const [aboutBusy, setAboutBusy] = useState(false);
   const [fontQueue, setFontQueue] = useState([]);
   const [fontBusy, setFontBusy] = useState('');
   const [newCat, setNewCat] = useState('');
@@ -33,7 +36,10 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
       setRows(j.projects || []);
     } catch { notify('خطا در بارگذاری'); }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    api.getAbout().then((j) => { if (j.about) setAboutForm({ ...j.about }); }).catch(() => {});
+  }, []);
 
   const uploadThenCreate = async (e) => {
     e.preventDefault();
@@ -141,6 +147,33 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     notify('لوگو حذف شد');
   };
 
+  // About section lives in its dedicated about_content table.
+  const saveAbout = async () => {
+    if (!aboutForm || aboutBusy) return;
+    setAboutBusy(true);
+    try {
+      await api.saveAbout({
+        eyebrow: String(aboutForm.eyebrow || '').slice(0, 255),
+        headline1: String(aboutForm.headline1 || '').slice(0, 255),
+        headline2: String(aboutForm.headline2 || '').slice(0, 255),
+        description: String(aboutForm.description || '').slice(0, 10000),
+        image: aboutForm.image || ''
+      });
+      notify('بخش درباره ما ذخیره شد');
+    } catch { notify('خطا در ذخیره'); }
+    finally { setAboutBusy(false); }
+  };
+
+  const uploadAboutImage = async () => {
+    if (!aboutFile) return;
+    try {
+      const j = await api.uploadImage(aboutFile);
+      setAboutForm((f) => ({ ...(f || {}), image: j.url }));
+      setAboutFile(null);
+      notify('تصویر آپلود شد — برای ثبت نهایی «ذخیره» را بزنید');
+    } catch { notify('خطا در آپلود تصویر'); }
+  };
+
   const uploadFonts = async () => {
     if (!fontQueue.length || fontBusy) return;
     setFontBusy('شروع آپلود…');
@@ -191,7 +224,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   return (
     <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {[['projects', 'نمونه‌کارها'], ['cats', 'دسته‌بندی‌ها'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
+        {[['projects', 'نمونه‌کارها'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
         ))}
         <span className="grow" />
@@ -265,6 +298,33 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
           </div>
           <p className="mut text-xs leading-6 mt-3">ویرایش نام، همه پروژه‌های آن دسته را هم منتقل می‌کند. حذف فقط وقتی ممکن است که هیچ پروژه‌ای در آن دسته نباشد.</p>
         </>
+      )}
+
+      {tab === 'about' && (
+        <div className="card card-pad grid gap-3 max-w-xl">
+          <h3 className="font-extrabold">بخش «درباره ما» <span className="mut font-normal text-sm">(جدول اختصاصی about_content)</span></h3>
+          {!aboutForm ? <p className="mut text-sm">در حال بارگذاری…</p> : (
+            <>
+              <label className="text-sm">عنوان کوچک<input className="inp mt-1" value={aboutForm.eyebrow || ''} onChange={(e) => setAboutForm({ ...aboutForm, eyebrow: e.target.value })} /></label>
+              <label className="text-sm">تیتر (خط اول)<input className="inp mt-1" value={aboutForm.headline1 || ''} onChange={(e) => setAboutForm({ ...aboutForm, headline1: e.target.value })} /></label>
+              <label className="text-sm">تیتر (خط دوم)<input className="inp mt-1" value={aboutForm.headline2 || ''} onChange={(e) => setAboutForm({ ...aboutForm, headline2: e.target.value })} /></label>
+              <label className="text-sm">توضیحات<textarea className="inp mt-1" rows={4} value={aboutForm.description || ''} onChange={(e) => setAboutForm({ ...aboutForm, description: e.target.value })} /></label>
+              <div className="text-sm">تصویر
+                <div className="flex items-center gap-3 mt-2">
+                  {aboutForm.image
+                    ? <img src={aboutForm.image} alt="تصویر درباره ما" className="h-20 w-auto max-w-[220px] object-contain rounded-lg border" style={{ borderColor: 'var(--line)' }} />
+                    : <span className="mut text-xs">بدون تصویر</span>}
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(e) => setAboutFile(e.target.files?.[0] || null)} />
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button className="btn-ghost !min-h-0 !py-2 !px-4 text-sm" disabled={!aboutFile} onClick={uploadAboutImage}>آپلود تصویر</button>
+                  {aboutForm.image && <button className="btn-ghost !min-h-0 !py-2 !px-4 text-sm" onClick={() => setAboutForm({ ...aboutForm, image: '' })}>حذف تصویر</button>}
+                </div>
+              </div>
+              <button className="btn-acc" disabled={aboutBusy} onClick={saveAbout}>{aboutBusy ? '…' : 'ذخیره درباره ما'}</button>
+            </>
+          )}
+        </div>
       )}
 
       {tab === 'fonts' && (

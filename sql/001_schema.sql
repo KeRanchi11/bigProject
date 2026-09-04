@@ -51,3 +51,15 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   reset_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dedicated single-row table for the About Us section (one section, one table).
+CREATE TABLE IF NOT EXISTS about_content (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  eyebrow VARCHAR(255) NOT NULL DEFAULT '',
+  headline1 VARCHAR(255) NOT NULL DEFAULT '',
+  headline2 VARCHAR(255) NOT NULL DEFAULT '',
+  description TEXT NOT NULL,
+  image TEXT NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_about_single CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -70,6 +70,8 @@ export const api = {
   myLikes: (visitorId) => req('/api/me/likes?visitorId=' + encodeURIComponent(visitorId)),
   content: () => req('/api/content'),
   saveContent: (obj) => req('/api/content', { method: 'POST', body: obj }),
+  getAbout: () => req('/api/about'),
+  saveAbout: (obj) => req('/api/about', { method: 'PUT', body: obj }),
   login: (username, password) => req('/api/admin/login', { method: 'POST', body: { username, password } }),
   logout: () => req('/api/admin/logout', { method: 'POST', body: {} }),
   status: () => req('/api/admin/status'),

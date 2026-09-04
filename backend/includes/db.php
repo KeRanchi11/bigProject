@@ -48,6 +48,28 @@ function db_init_tables(): void {
     if ($s === '') continue;
     $db->exec($s);
   }
+  migrate_about_once();
+}
+
+// One-time, non-destructive: copy About texts into the dedicated table on first run.
+// Old site_content rows are left untouched as fallback; reads/writes use about_content.
+function migrate_about_once(): void {
+  $db = pdo();
+  $n = (int)$db->query('SELECT COUNT(*) AS c FROM about_content')->fetch()['c'];
+  if ($n > 0) return;
+  $map = ['aboutEyebrow' => 'eyebrow', 'aboutHeadline1' => 'headline1', 'aboutHeadline2' => 'headline2', 'aboutDescription' => 'description', 'aboutImage' => 'image'];
+  $vals = ['eyebrow' => '', 'headline1' => '', 'headline2' => '', 'description' => '', 'image' => ''];
+  $q = $db->prepare('SELECT `value` FROM site_content WHERE `key` = ?');
+  foreach ($map as $k => $col) {
+    $q->execute([$k]);
+    $r = $q->fetch();
+    if ($r) $vals[$col] = (string)$r['value'];
+  }
+  if (implode('', $vals) === '') {
+    $vals = ['eyebrow' => 'داستان ما', 'headline1' => 'ما فقط تابلو', 'headline2' => 'نمی‌سازیم.', 'description' => 'کمک می‌کنیم برند شما دیده و به یاد سپرده شود.', 'image' => ''];
+  }
+  $ins = $db->prepare('INSERT INTO about_content (id, eyebrow, headline1, headline2, description, image) VALUES (1, ?, ?, ?, ?, ?)');
+  $ins->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['image']]);
 }
 
 function inline_schema(): string {
@@ -94,8 +116,17 @@ CREATE TABLE IF NOT EXISTS site_content (
 CREATE TABLE IF NOT EXISTS rate_limits (
   `key` VARCHAR(128) PRIMARY KEY,
   attempts INT NOT NULL DEFAULT 1,
-  reset_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  reset_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS about_content (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  eyebrow VARCHAR(255) NOT NULL DEFAULT '',
+  headline1 VARCHAR(255) NOT NULL DEFAULT '',
+  headline2 VARCHAR(255) NOT NULL DEFAULT '',
+  description TEXT NOT NULL,
+  image TEXT NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_about_single CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL;
 }

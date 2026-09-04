@@ -64,7 +64,7 @@ export default function App() {
           <Hero content={content} onCta={() => scrollTo('contact')} onGallery={() => scrollTo('gallery')} />
           <FeaturedSlider items={allForSlider} onOpen={setSelectedId} />
           <Gallery hook={projectsHook} likes={likes} onOpen={setSelectedId} notify={notify} categories={content.categories} />
-          <About content={content} />
+          <About />
           <Contact content={content} notify={notify} />
         </main>
       )}

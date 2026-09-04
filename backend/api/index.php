@@ -32,6 +32,7 @@ function route_key(string $method, string $path): string {
   if ($path === '/admin/fonts') return $method . ' /admin/fonts';
   if ($path === '/admin/categories/rename') return 'POST /admin/categories/rename';
   if ($path === '/admin/categories') return $method . ' /admin/categories';
+  if ($path === '/about') return $method . ' /about';
   return $method . ' ' . $path;
 }
 
@@ -331,6 +332,40 @@ try {
     $u = $db->prepare('UPDATE projects SET category = ? WHERE category = ?');
     $u->execute([$to, $from]);
     json_ok(['success' => true, 'moved' => $u->rowCount()]);
+  }
+
+  // ---- About section (dedicated about_content table, singleton id=1) ----
+  if ($rk === 'GET /about') {
+    $db = pdo();
+    $r = $db->query('SELECT eyebrow, headline1, headline2, description, image FROM about_content WHERE id = 1')->fetch();
+    json_ok(['about' => $r ?: null]);
+  }
+
+  if ($rk === 'PUT /about') {
+    require_admin();
+    $b = read_json_body();
+    $db = pdo();
+    $cur = $db->query('SELECT * FROM about_content WHERE id = 1')->fetch();
+    $oldImg = ($cur && isset($cur['image'])) ? (string)$cur['image'] : '';
+    $vals = [
+      'eyebrow' => array_key_exists('eyebrow', $b) ? clean_str($b['eyebrow'], 255) : (string)($cur['eyebrow'] ?? ''),
+      'headline1' => array_key_exists('headline1', $b) ? clean_str($b['headline1'], 255) : (string)($cur['headline1'] ?? ''),
+      'headline2' => array_key_exists('headline2', $b) ? clean_str($b['headline2'], 255) : (string)($cur['headline2'] ?? ''),
+      'description' => array_key_exists('description', $b) ? clean_str($b['description'], 10000) : (string)($cur['description'] ?? ''),
+      'image' => array_key_exists('image', $b) ? clean_url($b['image']) : $oldImg,
+    ];
+    // Full-row upsert (no column defaults needed — safe on MySQL 5.7 too).
+    $st = $db->prepare('INSERT INTO about_content (id, eyebrow, headline1, headline2, description, image) VALUES (1, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE eyebrow = VALUES(eyebrow), headline1 = VALUES(headline1), headline2 = VALUES(headline2), description = VALUES(description), image = VALUES(image)');
+    $st->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['image']]);
+    // Orphan cleanup on image replace (same rule as logo).
+    if ($oldImg !== '' && $oldImg !== $vals['image'] && str_starts_with($oldImg, '/uploads/')) {
+      $base = basename($oldImg);
+      if (preg_match('/^[a-f0-9]{16}\.(jpg|png|webp|gif|avif)$/i', $base)) {
+        $f = uploads_dir() . '/' . $base;
+        if (is_file($f) && !@unlink($f)) { usleep(300000); @unlink($f); }
+      }
+    }
+    json_ok(['success' => true]);
   }
 
   if ($rk === 'DELETE /admin/categories') {
