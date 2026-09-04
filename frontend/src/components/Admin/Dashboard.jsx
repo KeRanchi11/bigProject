@@ -370,8 +370,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
         <>
           <div className="card card-pad mb-4 grid gap-3">
             <h3 className="font-extrabold">آپلود گروهی فونت <span className="mut font-normal text-sm">(TTF / OTF — هر تعداد)</span></h3>
-            <input type="file" multiple accept=".ttf,.otf" onChange={(e) => setFontQueue(Array.from(e.target.files || []).slice(0, 100))} />
-            {fontQueue.length > 0 && <p className="mut text-sm">{fontQueue.length} فایل انتخاب شد</p>}
+            <FileField accept=".ttf,.otf" multiple value={fontQueue} onChange={(files) => setFontQueue(files.slice(0, 100))} />
             {fontBusy && <p className="text-sm" style={{ color: 'var(--acc)' }}>{fontBusy}</p>}
             <button className="btn-acc" disabled={!fontQueue.length || !!fontBusy} onClick={uploadFonts}>
               {fontBusy || 'آپلود و ثبت در پایگاه داده'}
