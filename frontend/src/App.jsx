@@ -22,8 +22,8 @@ import './styles/tokens.css';
 import './styles/base.css';
 
 export default function App() {
-  const themeProps = useTheme(content.activePalette);
   const { content, save, loading: contentLoading } = useContent();
+  const themeProps = useTheme(content.activePalette);
   const projectsHook = useProjects();
   const likes = useLikes();
   const [page, setPage] = useState('home'); // home | price | fonts | admin
