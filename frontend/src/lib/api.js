@@ -35,6 +35,7 @@ async function req(path, opts = {}, retried = false) {
     const e = new Error(j.error || ('http_' + r.status));
     e.code = j.error;
     e.status = r.status;
+    e.data = j;
     throw e;
   }
   return j;
@@ -79,6 +80,7 @@ export const api = {
   deleteProject: (id) => req('/api/admin/projects/' + encodeURIComponent(id), { method: 'DELETE' }),
   reorder: (orders) => req('/api/admin/reorder', { method: 'POST', body: { orders } }),
   renameCategory: (from, to) => req('/api/admin/categories/rename', { method: 'POST', body: { from, to } }),
+  deleteCategory: (name) => req('/api/admin/categories', { method: 'DELETE', body: { name } }),
   uploadImage: (file) => uploadFile('/api/upload', file),
   uploadFont: (file) => uploadFile('/api/upload-font', file),
   deleteFont: (url) => req('/api/admin/fonts', { method: 'DELETE', body: { url } }),

@@ -31,6 +31,7 @@ function route_key(string $method, string $path): string {
   if ($path === '/admin/reorder') return 'POST /admin/reorder';
   if ($path === '/admin/fonts') return $method . ' /admin/fonts';
   if ($path === '/admin/categories/rename') return 'POST /admin/categories/rename';
+  if ($path === '/admin/categories') return $method . ' /admin/categories';
   return $method . ' ' . $path;
 }
 
@@ -330,6 +331,38 @@ try {
     $u = $db->prepare('UPDATE projects SET category = ? WHERE category = ?');
     $u->execute([$to, $from]);
     json_ok(['success' => true, 'moved' => $u->rowCount()]);
+  }
+
+  if ($rk === 'DELETE /admin/categories') {
+    require_admin();
+    $b = read_json_body();
+    $name = clean_str($b['name'] ?? '', 100);
+    if ($name === '') json_err('invalid', 400);
+    $db = pdo();
+    // Database-level guard: a category holding projects cannot be deleted.
+    $c = $db->prepare('SELECT COUNT(*) AS n FROM projects WHERE category = ?');
+    $c->execute([$name]);
+    $n = (int)$c->fetch()['n'];
+    if ($n > 0) json_err('category_in_use', 409, ['count' => $n]);
+    $db->beginTransaction();
+    try {
+      $g = $db->prepare('SELECT `value` FROM site_content WHERE `key` = ?');
+      $g->execute(['categories']);
+      $row = $g->fetch();
+      if ($row) {
+        $arr = json_decode((string)$row['value'], true);
+        if (is_array($arr)) {
+          $arr = array_values(array_filter($arr, fn($x) => $x !== $name));
+          $s = $db->prepare('INSERT INTO site_content (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)');
+          $s->execute(['categories', json_encode($arr, JSON_UNESCAPED_UNICODE)]);
+        }
+      }
+      $db->commit();
+    } catch (Throwable $e) {
+      $db->rollBack();
+      throw $e;
+    }
+    json_ok(['success' => true]);
   }
 
   if ($rk === 'DELETE /admin/fonts') {

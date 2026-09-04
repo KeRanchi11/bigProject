@@ -108,12 +108,18 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   };
 
   const delCat = async (name) => {
-    const used = rows.filter((p) => p.category === name).length;
-    if (!confirm(used > 0
-      ? '«' + name + '» در ' + used + ' پروژه استفاده شده و آن‌ها بدون دسته می‌مانند (در «همه» دیده می‌شوند). حذف شود؟'
-      : '«' + name + '» حذف شود؟')) return;
-    await onContent({ categories: catList.filter((c) => c !== name) });
-    notify('دسته‌بندی حذف شد');
+    if (!confirm('«' + name + '» حذف شود؟')) return;
+    try {
+      await api.deleteCategory(name);
+      await onContent({ categories: catList.filter((c) => c !== name) });
+      notify('دسته‌بندی حذف شد');
+    } catch (err) {
+      if (err.code === 'category_in_use' || err.status === 409) {
+        const n = (err.data && err.data.count) || rows.filter((p) => p.category === name).length;
+        notify('اول پروژه‌ها را از این دسته منتقل کنید (' + n + ' پروژه)');
+        await load();
+      } else notify('خطا در حذف دسته‌بندی');
+    }
   };
 
   // Single logo record: upload replaces logoUrl in DB; server deletes the old file.
@@ -250,14 +256,14 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
                       <b className="grow truncate">{c}</b>
                       <span className="mut text-xs shrink-0">{used} پروژه</span>
                       <button className="btn-ghost !py-1 !px-2 text-xs shrink-0" onClick={() => { setEditingCat(c); setEditCatVal(c); }}>ویرایش</button>
-                      <button className="btn-ghost !py-1 !px-2 text-xs shrink-0" onClick={() => delCat(c)}>حذف</button>
+                      <button className="btn-ghost !py-1 !px-2 text-xs shrink-0" disabled={used > 0} title={used > 0 ? 'ابتدا پروژه‌ها را به دسته دیگری منتقل کنید' : 'حذف'} onClick={() => delCat(c)}>حذف</button>
                     </>
                   )}
                 </div>
               );
             })}
           </div>
-          <p className="mut text-xs leading-6 mt-3">ویرایش نام، همه پروژه‌های آن دسته را هم منتقل می‌کند. با حذف، پروژه‌های قدیمی بدون دسته می‌مانند و فقط در «همه» دیده می‌شوند.</p>
+          <p className="mut text-xs leading-6 mt-3">ویرایش نام، همه پروژه‌های آن دسته را هم منتقل می‌کند. حذف فقط وقتی ممکن است که هیچ پروژه‌ای در آن دسته نباشد.</p>
         </>
       )}
 
