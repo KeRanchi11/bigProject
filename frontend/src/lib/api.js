@@ -11,7 +11,7 @@ export async function getCsrf() {
   return csrf;
 }
 
-async function req(path, opts = {}) {
+async function req(path, opts = {}, retried = false) {
   const headers = { ...(opts.headers || {}) };
   let body = opts.body;
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
@@ -25,6 +25,13 @@ async function req(path, opts = {}) {
   const r = await fetch(path, { credentials: 'same-origin', ...opts, headers, body });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) {
+    // Session died (logout, server restart, expiry) while the page stayed open:
+    // the cached token is stale. Refresh once and retry instead of locking the user out.
+    if (j.error === 'bad_csrf' && !retried) {
+      csrf = '';
+      await getCsrf();
+      return req(path, opts, true);
+    }
     const e = new Error(j.error || ('http_' + r.status));
     e.code = j.error;
     e.status = r.status;
@@ -33,13 +40,19 @@ async function req(path, opts = {}) {
   return j;
 }
 
-async function uploadFile(path, file) {
+async function uploadFile(path, file, retried = false) {
   await getCsrf();
   const fd = new FormData();
   fd.append('file', file);
   const r = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-Token': csrf }, body: fd });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.error || 'upload_failed');
+  if (!r.ok) {
+    if (j.error === 'bad_csrf' && !retried) {
+      csrf = '';
+      return uploadFile(path, file, true);
+    }
+    throw new Error(j.error || 'upload_failed');
+  }
   return j;
 }
 

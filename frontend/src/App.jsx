@@ -76,7 +76,7 @@ export default function App() {
           : <Login notify={notify} onOk={() => { setAdmin(true); notify('خوش آمدید'); }} />
       )}
 
-      <Footer content={content} onAdmin={() => scrollTo('admin')} />
+      <Footer content={content} admin={admin} onAdmin={() => scrollTo('admin')} onHome={() => scrollTo('top')} />
 
       <Lightbox
         project={selected}
