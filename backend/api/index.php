@@ -34,6 +34,7 @@ function route_key(string $method, string $path): string {
   if ($path === '/admin/categories') return $method . ' /admin/categories';
   if ($path === '/about') return $method . ' /about';
   if ($path === '/contact') return $method . ' /contact';
+  if ($path === '/hero') return $method . ' /hero';
   return $method . ' ' . $path;
 }
 
@@ -333,6 +334,31 @@ try {
     $u = $db->prepare('UPDATE projects SET category = ? WHERE category = ?');
     $u->execute([$to, $from]);
     json_ok(['success' => true, 'moved' => $u->rowCount()]);
+  }
+
+  // ---- Hero section (dedicated hero_content table, singleton id=1) ----
+  if ($rk === 'GET /hero') {
+    $db = pdo();
+    $r = $db->query('SELECT eyebrow, headline1, headline2, description, cta, proof_number, proof_text, neon_small, neon_line1, neon_line2, chip1, chip2 FROM hero_content WHERE id = 1')->fetch();
+    json_ok(['hero' => $r ?: null]);
+  }
+
+  if ($rk === 'PUT /hero') {
+    require_admin();
+    $b = read_json_body();
+    if (!is_array($b)) json_err('invalid', 400);
+    $db = pdo();
+    $cur = $db->query('SELECT * FROM hero_content WHERE id = 1')->fetch();
+    $short = ['eyebrow' => 255, 'headline1' => 255, 'headline2' => 255, 'cta' => 255, 'proof_number' => 50, 'proof_text' => 255, 'neon_small' => 120, 'neon_line1' => 120, 'neon_line2' => 120, 'chip1' => 120, 'chip2' => 120];
+    $vals = [];
+    foreach ($short as $k => $max) {
+      $vals[$k] = array_key_exists($k, $b) ? clean_str($b[$k], $max) : (string)($cur[$k] ?? '');
+    }
+    $vals['description'] = array_key_exists('description', $b) ? clean_str($b['description'], 2000) : (string)($cur['description'] ?? '');
+    // Full-row upsert (no column defaults needed — safe on MySQL 5.7 too).
+    $st = $db->prepare('INSERT INTO hero_content (id, eyebrow, headline1, headline2, description, cta, proof_number, proof_text, neon_small, neon_line1, neon_line2, chip1, chip2) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE eyebrow = VALUES(eyebrow), headline1 = VALUES(headline1), headline2 = VALUES(headline2), description = VALUES(description), cta = VALUES(cta), proof_number = VALUES(proof_number), proof_text = VALUES(proof_text), neon_small = VALUES(neon_small), neon_line1 = VALUES(neon_line1), neon_line2 = VALUES(neon_line2), chip1 = VALUES(chip1), chip2 = VALUES(chip2)');
+    $st->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['cta'], $vals['proof_number'], $vals['proof_text'], $vals['neon_small'], $vals['neon_line1'], $vals['neon_line2'], $vals['chip1'], $vals['chip2']]);
+    json_ok(['success' => true]);
   }
 
   // ---- Contact section (dedicated contact_content table, singleton id=1) ----

@@ -23,6 +23,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [aboutBusy, setAboutBusy] = useState(false);
   const [contactForm, setContactForm] = useState(null);
   const [contactBusy, setContactBusy] = useState(false);
+  const [heroForm, setHeroForm] = useState(null);
+  const [heroBusy, setHeroBusy] = useState(false);
   const [fontQueue, setFontQueue] = useState([]);
   const [fontBusy, setFontBusy] = useState('');
   const [newCat, setNewCat] = useState('');
@@ -43,6 +45,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     load();
     api.getAbout().then((j) => { if (j.about) setAboutForm({ ...j.about }); }).catch(() => {});
     api.getContact().then((j) => { if (j.contact) setContactForm({ ...j.contact }); }).catch(() => {});
+    api.getHero().then((j) => { if (j.hero) setHeroForm({ ...j.hero }); }).catch(() => {});
   }, []);
 
   const uploadThenCreate = async (e) => {
@@ -196,6 +199,30 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     finally { setContactBusy(false); }
   };
 
+  // Hero section lives in its dedicated hero_content table.
+  const saveHero = async () => {
+    if (!heroForm || heroBusy) return;
+    setHeroBusy(true);
+    try {
+      await api.saveHero({
+        eyebrow: String(heroForm.eyebrow || '').slice(0, 255),
+        headline1: String(heroForm.headline1 || '').slice(0, 255),
+        headline2: String(heroForm.headline2 || '').slice(0, 255),
+        description: String(heroForm.description || '').slice(0, 2000),
+        cta: String(heroForm.cta || '').slice(0, 255),
+        proof_number: String(heroForm.proof_number || '').slice(0, 50),
+        proof_text: String(heroForm.proof_text || '').slice(0, 255),
+        neon_small: String(heroForm.neon_small || '').slice(0, 120),
+        neon_line1: String(heroForm.neon_line1 || '').slice(0, 120),
+        neon_line2: String(heroForm.neon_line2 || '').slice(0, 120),
+        chip1: String(heroForm.chip1 || '').slice(0, 120),
+        chip2: String(heroForm.chip2 || '').slice(0, 120)
+      });
+      notify('بخش هیرو ذخیره شد');
+    } catch { notify('خطا در ذخیره'); }
+    finally { setHeroBusy(false); }
+  };
+
   const uploadFonts = async () => {
     if (!fontQueue.length || fontBusy) return;
     setFontBusy('شروع آپلود…');
@@ -246,7 +273,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   return (
     <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {[['projects', 'نمونه‌کارها'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['contact', 'تماس'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
+        {[['projects', 'نمونه‌کارها'], ['hero', 'هیرو'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['contact', 'تماس'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
         ))}
         <span className="grow" />
@@ -287,6 +314,32 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
             ))}
           </div>
         </>
+      )}
+
+      {tab === 'hero' && (
+        <div className="card card-pad grid gap-3 max-w-xl">
+          <h3 className="font-extrabold">بخش «هیرو» <span className="mut font-normal text-sm">(جدول اختصاصی hero_content)</span></h3>
+          {!heroForm ? <p className="mut text-sm">در حال بارگذاری…</p> : (
+            <>
+              <label className="text-sm">عنوان کوچک<input className="inp mt-1" value={heroForm.eyebrow || ''} onChange={(e) => setHeroForm({ ...heroForm, eyebrow: e.target.value })} /></label>
+              <label className="text-sm">تیتر (خط اول)<input className="inp mt-1" value={heroForm.headline1 || ''} onChange={(e) => setHeroForm({ ...heroForm, headline1: e.target.value })} /></label>
+              <label className="text-sm">تیتر (خط دوم)<input className="inp mt-1" value={heroForm.headline2 || ''} onChange={(e) => setHeroForm({ ...heroForm, headline2: e.target.value })} /></label>
+              <label className="text-sm">توضیحات<textarea className="inp mt-1" rows={3} value={heroForm.description || ''} onChange={(e) => setHeroForm({ ...heroForm, description: e.target.value })} /></label>
+              <label className="text-sm">متن دکمه<input className="inp mt-1" value={heroForm.cta || ''} onChange={(e) => setHeroForm({ ...heroForm, cta: e.target.value })} /></label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-sm">عدد اثبات<input className="inp mt-1" value={heroForm.proof_number || ''} onChange={(e) => setHeroForm({ ...heroForm, proof_number: e.target.value })} /></label>
+                <label className="text-sm">متن اثبات<input className="inp mt-1" value={heroForm.proof_text || ''} onChange={(e) => setHeroForm({ ...heroForm, proof_text: e.target.value })} /></label>
+              </div>
+              <h4 className="font-bold text-sm mt-1">باکس نئون</h4>
+              <label className="text-sm">متن کوچک بالا<input className="inp mt-1" value={heroForm.neon_small || ''} onChange={(e) => setHeroForm({ ...heroForm, neon_small: e.target.value })} dir="ltr" /></label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-sm">خط اول<input className="inp mt-1" value={heroForm.neon_line1 || ''} onChange={(e) => setHeroForm({ ...heroForm, neon_line1: e.target.value })} dir="ltr" /></label>
+                <label className="text-sm">خط دوم<input className="inp mt-1" value={heroForm.neon_line2 || ''} onChange={(e) => setHeroForm({ ...heroForm, neon_line2: e.target.value })} /></label>
+              </div>
+              <button className="btn-acc" disabled={heroBusy} onClick={saveHero}>{heroBusy ? '…' : 'ذخیره هیرو'}</button>
+            </>
+          )}
+        </div>
       )}
 
       {tab === 'cats' && (

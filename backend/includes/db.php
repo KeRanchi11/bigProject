@@ -50,6 +50,7 @@ function db_init_tables(): void {
   }
   migrate_about_once();
   migrate_contact_once();
+  migrate_hero_once();
 }
 
 // One-time, non-destructive: copy About texts into the dedicated table on first run.
@@ -92,6 +93,33 @@ function migrate_contact_once(): void {
   }
   $ins = $db->prepare('INSERT INTO contact_content (id, eyebrow, headline1, headline2, description, whatsapp, instagram) VALUES (1, ?, ?, ?, ?, ?, ?)');
   $ins->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['whatsapp'], $vals['instagram']]);
+}
+
+// One-time, non-destructive: copy Hero texts into the dedicated table on first run.
+// Old site_content rows are left untouched as fallback; reads/writes use hero_content.
+function migrate_hero_once(): void {
+  $db = pdo();
+  $n = (int)$db->query('SELECT COUNT(*) AS c FROM hero_content')->fetch()['c'];
+  if ($n > 0) return;
+  $map = ['heroEyebrow' => 'eyebrow', 'heroHeadline1' => 'headline1', 'heroHeadline2' => 'headline2', 'heroDescription' => 'description', 'heroCta' => 'cta', 'heroProofNumber' => 'proof_number', 'heroProofText' => 'proof_text'];
+  $vals = ['eyebrow' => '', 'headline1' => '', 'headline2' => '', 'description' => '', 'cta' => '', 'proof_number' => '', 'proof_text' => '', 'neon_small' => 'GOOD IDEAS', 'neon_line1' => 'SHINE', 'neon_line2' => 'BRIGHT', 'chip1' => 'از ایده', 'chip2' => 'تا اجرا'];
+  $q = $db->prepare('SELECT `value` FROM site_content WHERE `key` = ?');
+  foreach ($map as $k => $col) {
+    $q->execute([$k]);
+    $r = $q->fetch();
+    if ($r) $vals[$col] = (string)$r['value'];
+  }
+  if (implode('', array_slice($vals, 0, 7)) === '') {
+    $vals['eyebrow'] = 'طراحی شده برای دیده شدن';
+    $vals['headline1'] = 'تابلوی شما،';
+    $vals['headline2'] = 'امضای ماست.';
+    $vals['description'] = 'ما برای برندهایی تابلو می‌سازیم که می‌خواهند در ذهن‌ها بمانند. از ایده تا اجرا، کنار شما هستیم.';
+    $vals['cta'] = 'شروع یک همکاری';
+    $vals['proof_number'] = '+۱۲۰';
+    $vals['proof_text'] = 'پروژه موفق در سراسر ایران';
+  }
+  $ins = $db->prepare('INSERT INTO hero_content (id, eyebrow, headline1, headline2, description, cta, proof_number, proof_text, neon_small, neon_line1, neon_line2, chip1, chip2) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  $ins->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['cta'], $vals['proof_number'], $vals['proof_text'], $vals['neon_small'], $vals['neon_line1'], $vals['neon_line2'], $vals['chip1'], $vals['chip2']]);
 }
 
 function inline_schema(): string {
@@ -160,6 +188,23 @@ CREATE TABLE IF NOT EXISTS contact_content (
   instagram TEXT NOT NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT chk_contact_single CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS hero_content (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  eyebrow VARCHAR(255) NOT NULL DEFAULT '',
+  headline1 VARCHAR(255) NOT NULL DEFAULT '',
+  headline2 VARCHAR(255) NOT NULL DEFAULT '',
+  description TEXT NOT NULL,
+  cta VARCHAR(255) NOT NULL DEFAULT '',
+  proof_number VARCHAR(50) NOT NULL DEFAULT '',
+  proof_text VARCHAR(255) NOT NULL DEFAULT '',
+  neon_small VARCHAR(120) NOT NULL DEFAULT '',
+  neon_line1 VARCHAR(120) NOT NULL DEFAULT '',
+  neon_line2 VARCHAR(120) NOT NULL DEFAULT '',
+  chip1 VARCHAR(120) NOT NULL DEFAULT '',
+  chip2 VARCHAR(120) NOT NULL DEFAULT '',
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_hero_single CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL;
 }

@@ -61,7 +61,7 @@ export default function App() {
 
       {page === 'home' && (
         <main className="wrap page flow">
-          <Hero content={content} onCta={() => scrollTo('contact')} onGallery={() => scrollTo('gallery')} />
+          <Hero onCta={() => scrollTo('contact')} onGallery={() => scrollTo('gallery')} />
           <FeaturedSlider items={allForSlider} onOpen={setSelectedId} />
           <Gallery hook={projectsHook} likes={likes} onOpen={setSelectedId} notify={notify} categories={content.categories} />
           <About />

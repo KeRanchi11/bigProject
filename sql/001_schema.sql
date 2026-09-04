@@ -76,3 +76,22 @@ CREATE TABLE IF NOT EXISTS contact_content (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT chk_contact_single CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dedicated single-row table for the Hero section (one section, one table).
+CREATE TABLE IF NOT EXISTS hero_content (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  eyebrow VARCHAR(255) NOT NULL DEFAULT '',
+  headline1 VARCHAR(255) NOT NULL DEFAULT '',
+  headline2 VARCHAR(255) NOT NULL DEFAULT '',
+  description TEXT NOT NULL,
+  cta VARCHAR(255) NOT NULL DEFAULT '',
+  proof_number VARCHAR(50) NOT NULL DEFAULT '',
+  proof_text VARCHAR(255) NOT NULL DEFAULT '',
+  neon_small VARCHAR(120) NOT NULL DEFAULT '',
+  neon_line1 VARCHAR(120) NOT NULL DEFAULT '',
+  neon_line2 VARCHAR(120) NOT NULL DEFAULT '',
+  chip1 VARCHAR(120) NOT NULL DEFAULT '',
+  chip2 VARCHAR(120) NOT NULL DEFAULT '',
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_hero_single CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
