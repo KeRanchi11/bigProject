@@ -65,7 +65,7 @@ export default function App() {
           <FeaturedSlider items={allForSlider} onOpen={setSelectedId} />
           <Gallery hook={projectsHook} likes={likes} onOpen={setSelectedId} notify={notify} categories={content.categories} />
           <About />
-          <Contact content={content} notify={notify} />
+          <Contact notify={notify} />
         </main>
       )}
       {page === 'price' && <PriceCalculator content={content} onBack={() => scrollTo('top')} notify={notify} />}

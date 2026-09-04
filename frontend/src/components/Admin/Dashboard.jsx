@@ -20,6 +20,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [aboutForm, setAboutForm] = useState(null);
   const [aboutFile, setAboutFile] = useState(null);
   const [aboutBusy, setAboutBusy] = useState(false);
+  const [contactForm, setContactForm] = useState(null);
+  const [contactBusy, setContactBusy] = useState(false);
   const [fontQueue, setFontQueue] = useState([]);
   const [fontBusy, setFontBusy] = useState('');
   const [newCat, setNewCat] = useState('');
@@ -39,6 +41,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   useEffect(() => {
     load();
     api.getAbout().then((j) => { if (j.about) setAboutForm({ ...j.about }); }).catch(() => {});
+    api.getContact().then((j) => { if (j.contact) setContactForm({ ...j.contact }); }).catch(() => {});
   }, []);
 
   const uploadThenCreate = async (e) => {
@@ -174,6 +177,24 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     } catch { notify('خطا در آپلود تصویر'); }
   };
 
+  // Contact section lives in its dedicated contact_content table.
+  const saveContact = async () => {
+    if (!contactForm || contactBusy) return;
+    setContactBusy(true);
+    try {
+      await api.saveContact({
+        eyebrow: String(contactForm.eyebrow || '').slice(0, 255),
+        headline1: String(contactForm.headline1 || '').slice(0, 255),
+        headline2: String(contactForm.headline2 || '').slice(0, 255),
+        description: String(contactForm.description || '').slice(0, 10000),
+        whatsapp: String(contactForm.whatsapp || '').replace(/\D/g, '').slice(0, 20),
+        instagram: String(contactForm.instagram || '').slice(0, 500)
+      });
+      notify('بخش تماس ذخیره شد');
+    } catch { notify('خطا در ذخیره'); }
+    finally { setContactBusy(false); }
+  };
+
   const uploadFonts = async () => {
     if (!fontQueue.length || fontBusy) return;
     setFontBusy('شروع آپلود…');
@@ -224,7 +245,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   return (
     <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {[['projects', 'نمونه‌کارها'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
+        {[['projects', 'نمونه‌کارها'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['contact', 'تماس'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
         ))}
         <span className="grow" />
@@ -322,6 +343,23 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
                 </div>
               </div>
               <button className="btn-acc" disabled={aboutBusy} onClick={saveAbout}>{aboutBusy ? '…' : 'ذخیره درباره ما'}</button>
+            </>
+          )}
+        </div>
+      )}
+
+      {tab === 'contact' && (
+        <div className="card card-pad grid gap-3 max-w-xl">
+          <h3 className="font-extrabold">بخش «تماس» <span className="mut font-normal text-sm">(جدول اختصاصی contact_content)</span></h3>
+          {!contactForm ? <p className="mut text-sm">در حال بارگذاری…</p> : (
+            <>
+              <label className="text-sm">عنوان کوچک<input className="inp mt-1" value={contactForm.eyebrow || ''} onChange={(e) => setContactForm({ ...contactForm, eyebrow: e.target.value })} /></label>
+              <label className="text-sm">تیتر (خط اول)<input className="inp mt-1" value={contactForm.headline1 || ''} onChange={(e) => setContactForm({ ...contactForm, headline1: e.target.value })} /></label>
+              <label className="text-sm">تیتر (خط دوم)<input className="inp mt-1" value={contactForm.headline2 || ''} onChange={(e) => setContactForm({ ...contactForm, headline2: e.target.value })} /></label>
+              <label className="text-sm">توضیحات<textarea className="inp mt-1" rows={3} value={contactForm.description || ''} onChange={(e) => setContactForm({ ...contactForm, description: e.target.value })} /></label>
+              <label className="text-sm">واتساپ (فقط عدد)<input className="inp mt-1" value={contactForm.whatsapp || ''} onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })} dir="ltr" /></label>
+              <label className="text-sm">اینستاگرام (آدرس کامل)<input className="inp mt-1" value={contactForm.instagram || ''} onChange={(e) => setContactForm({ ...contactForm, instagram: e.target.value })} dir="ltr" placeholder="https://instagram.com/..." /></label>
+              <button className="btn-acc" disabled={contactBusy} onClick={saveContact}>{contactBusy ? '…' : 'ذخیره تماس'}</button>
             </>
           )}
         </div>

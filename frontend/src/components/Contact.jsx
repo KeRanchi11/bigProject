@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useContact } from '../hooks/useContact';
 
-export default function Contact({ content, notify }) {
+export default function Contact({ notify }) {
+  const { contact } = useContact();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [msg, setMsg] = useState('');
-  const wa = content.whatsapp || '989121234567';
+  const wa = contact.whatsapp || '989121234567';
 
   const submit = (e) => {
     e.preventDefault();
@@ -18,16 +20,16 @@ export default function Contact({ content, notify }) {
     <section id="contact">
       <div className="card pad-lg grid md:grid-cols-2 gap-5 md:gap-6">
         <div>
-          <p className="mut text-sm mb-1">{content.contactEyebrow || 'وقتشه بدرخشید'}</p>
+          <p className="mut text-sm mb-1">{contact.eyebrow || 'وقتشه بدرخشید'}</p>
           <h2 className="text-3xl font-black leading-[1.6] mb-2">
-            {content.contactHeadline1 || 'برای دیده شدن'}
+            {contact.headline1 || 'برای دیده شدن'}
             <br />
-            <span style={{ color: 'var(--acc)' }}>{content.contactHeadline2 || 'آماده‌ید؟'}</span>
+            <span style={{ color: 'var(--acc)' }}>{contact.headline2 || 'آماده‌ید؟'}</span>
           </h2>
-          <p className="mut leading-7 mb-4">{content.contactDescription}</p>
+          <p className="mut leading-7 mb-4">{contact.description}</p>
           <div className="flex flex-wrap gap-2 text-sm">
             <a className="btn-acc" target="_blank" rel="noreferrer" href={'https://wa.me/' + wa}>گفت‌وگو در واتساپ</a>
-            {content.instagram && <a className="btn-ghost" target="_blank" rel="noreferrer" href={content.instagram}>اینستاگرام</a>}
+            {contact.instagram && <a className="btn-ghost" target="_blank" rel="noreferrer" href={contact.instagram}>اینستاگرام</a>}
           </div>
         </div>
         <form onSubmit={submit} className="grid gap-3">
