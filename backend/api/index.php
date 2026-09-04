@@ -29,6 +29,7 @@ function route_key(string $method, string $path): string {
   if ($path === '/admin/projects') return $method . ' /admin/projects';
   if (preg_match('#^/admin/projects/([^/]+)$#u', $path)) return $method . ' /admin/projects_one';
   if ($path === '/admin/reorder') return 'POST /admin/reorder';
+  if ($path === '/admin/fonts') return $method . ' /admin/fonts';
   return $method . ' ' . $path;
 }
 
@@ -293,6 +294,19 @@ try {
       $st->execute([(int)($o['sortOrder'] ?? 0), $pid]);
     }
     $db->commit();
+    json_ok(['success' => true]);
+  }
+
+  if ($rk === 'DELETE /admin/fonts') {
+    require_admin();
+    $b = read_json_body();
+    $url = clean_str($b['url'] ?? '', 200);
+    if (!str_starts_with($url, '/fonts/')) json_err('bad_url', 400);
+    // Only files this app generated (16 hex chars + ttf/otf) — never .htaccess/.gitkeep.
+    $base = basename($url);
+    if (!preg_match('/^[a-f0-9]{16}\.(ttf|otf)$/i', $base)) json_err('bad_url', 400);
+    $f = fonts_dir() . '/' . $base;
+    if (is_file($f)) @unlink($f);
     json_ok(['success' => true]);
   }
 

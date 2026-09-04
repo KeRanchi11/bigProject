@@ -33,6 +33,16 @@ async function req(path, opts = {}) {
   return j;
 }
 
+async function uploadFile(path, file) {
+  await getCsrf();
+  const fd = new FormData();
+  fd.append('file', file);
+  const r = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-Token': csrf }, body: fd });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'upload_failed');
+  return j;
+}
+
 export const api = {
   health: () => req('/api/health'),
   projects: (p = {}) => {
@@ -55,13 +65,7 @@ export const api = {
   updateProject: (id, obj) => req('/api/admin/projects/' + encodeURIComponent(id), { method: 'PUT', body: obj }),
   deleteProject: (id) => req('/api/admin/projects/' + encodeURIComponent(id), { method: 'DELETE' }),
   reorder: (orders) => req('/api/admin/reorder', { method: 'POST', body: { orders } }),
-  uploadImage: async (file) => {
-    await getCsrf();
-    const fd = new FormData();
-    fd.append('file', file);
-    const r = await fetch('/api/upload', { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-Token': csrf }, body: fd });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j.error || 'upload_failed');
-    return j;
-  }
+  uploadImage: (file) => uploadFile('/api/upload', file),
+  uploadFont: (file) => uploadFile('/api/upload-font', file),
+  deleteFont: (url) => req('/api/admin/fonts', { method: 'DELETE', body: { url } }),
 };

@@ -8,17 +8,24 @@ export default function FontPreview({ content, onBack }) {
   const [size, setSize] = useState(44);
   const [color, setColor] = useState('#ffb03c');
   const [glow, setGlow] = useState(true);
+  const [fq, setFq] = useState('');
 
   const css = useMemo(() => fonts.map((f) => {
-    if (f.fileUrl) return "@font-face{font-family:'" + f.family + "';src:url('" + f.fileUrl + "');font-display:swap}";
-    return '';
+    if (!f.fileUrl) return '';
+    const fmt = String(f.fileUrl).toLowerCase().endsWith('.otf') ? 'opentype' : 'truetype';
+    return "@font-face{font-family:'" + f.family + "';src:url('" + f.fileUrl + "') format('" + fmt + "');font-display:swap}";
   }).join('\n'), [fonts]);
+
+  const shown = fq.trim()
+    ? fonts.filter((f) => String(f.name || '').includes(fq.trim()))
+    : fonts;
 
   return (
     <section className="wrap page">
       <button className="btn-ghost mb-4" onClick={onBack}>→ بازگشت</button>
       <div className="card card-pad mb-4 grid md:grid-cols-4 gap-3">
-        <input className="inp md:col-span-2" value={text} onChange={(e) => setText(e.target.value)} placeholder="متن تابلو…" />
+        <input className="inp md:col-span-2" value={text} onChange={(e) => setText(e.target.value)} placeholder="متن تابلو… همین متن با همه فونت‌ها نمایش داده می‌شود" />
+        <input className="inp" value={fq} onChange={(e) => setFq(e.target.value)} placeholder="جست‌وجوی فونت…" />
         <label className="text-sm mut flex items-center gap-2">اندازه
           <input type="range" min={20} max={110} value={size} onChange={(e) => setSize(+e.target.value)} className="grow" />
           {size}
@@ -28,8 +35,9 @@ export default function FontPreview({ content, onBack }) {
           <label className="mut flex items-center gap-1.5"><input type="checkbox" checked={glow} onChange={(e) => setGlow(e.target.checked)} /> درخشش نئون</label>
         </div>
       </div>
+      <p className="mut text-sm mb-3">مقایسه زنده در {shown.length} فونت</p>
       <style>{css}</style>
-      {fonts.map((f) => (
+      {shown.map((f) => (
         <div key={f.family || f.name} className="card card-pad mb-3 text-center overflow-hidden">
           <p className="mut text-xs mb-2">{f.name}</p>
           <p
@@ -46,6 +54,7 @@ export default function FontPreview({ content, onBack }) {
           {!f.fileUrl && f.googleUrl && <link rel="stylesheet" href={f.googleUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />}
         </div>
       ))}
+      {shown.length === 0 && <div className="card card-pad mut text-sm text-center">فونتی با این نام پیدا نشد.</div>}
     </section>
   );
 }

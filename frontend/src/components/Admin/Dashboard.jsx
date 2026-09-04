@@ -15,6 +15,10 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [brand, setBrand] = useState(content.brandName || '');
   const [wa, setWa] = useState(content.whatsapp || '');
   const [pal, setPal] = useState(content.activePalette || 'ember');
+  const [fontQueue, setFontQueue] = useState([]);
+  const [fontBusy, setFontBusy] = useState('');
+
+  const fonts = Array.isArray(content.signFonts) ? content.signFonts : [];
 
   const load = async () => {
     try {
@@ -61,6 +65,44 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     notify('تنظیمات ذخیره شد — پالت جدید برای همه اعمال شد');
   };
 
+  const uploadFonts = async () => {
+    if (!fontQueue.length || fontBusy) return;
+    setFontBusy('شروع آپلود…');
+    const list = [...fonts];
+    let done = 0;
+    for (let i = 0; i < fontQueue.length; i++) {
+      const f = fontQueue[i];
+      setFontBusy('در حال آپلود ' + (i + 1) + ' از ' + fontQueue.length + '…');
+      try {
+        const j = await api.uploadFont(f);
+        const base = (f.name || 'font').replace(/\.(ttf|otf)$/i, '').replace(/[_-]+/g, ' ').trim() || 'فونت';
+        list.push({
+          name: base.slice(0, 60),
+          family: 'F' + Date.now().toString(36) + i,
+          fileUrl: j.url,
+          googleUrl: ''
+        });
+        done++;
+      } catch { notify('خطا در آپلود ' + (f.name || '')); }
+    }
+    // One DB write for the whole batch (metadata stored in site_content).
+    await onContent({ signFonts: list });
+    setFontQueue([]);
+    setFontBusy('');
+    notify(done + ' فونت ذخیره و در پایگاه داده ثبت شد');
+  };
+
+  const delFont = async (idx) => {
+    if (!confirm('این فونت حذف شود؟')) return;
+    const list = [...fonts];
+    const [rm] = list.splice(idx, 1);
+    if (rm && rm.fileUrl) {
+      try { await api.deleteFont(rm.fileUrl); } catch { /* entry still removed below */ }
+    }
+    await onContent({ signFonts: list });
+    notify('فونت حذف شد');
+  };
+
   const changePass = async () => {
     if (nw.length < 8) { notify('رمز جدید حداقل ۸ حرف'); return; }
     try {
@@ -73,7 +115,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   return (
     <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {[['projects', 'نمونه‌کارها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
+        {[['projects', 'نمونه‌کارها'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
         ))}
         <span className="grow" />
@@ -104,6 +146,32 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
                     <button className="btn-ghost !py-1 !px-2 text-xs" onClick={() => del(p.id)}>حذف</button>
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {tab === 'fonts' && (
+        <>
+          <div className="card card-pad mb-4 grid gap-3">
+            <h3 className="font-extrabold">آپلود گروهی فونت <span className="mut font-normal text-sm">(TTF / OTF — هر تعداد)</span></h3>
+            <input type="file" multiple accept=".ttf,.otf" onChange={(e) => setFontQueue(Array.from(e.target.files || []).slice(0, 100))} />
+            {fontQueue.length > 0 && <p className="mut text-sm">{fontQueue.length} فایل انتخاب شد</p>}
+            {fontBusy && <p className="text-sm" style={{ color: 'var(--acc)' }}>{fontBusy}</p>}
+            <button className="btn-acc" disabled={!fontQueue.length || !!fontBusy} onClick={uploadFonts}>
+              {fontBusy || 'آپلود و ثبت در پایگاه داده'}
+            </button>
+          </div>
+          <div className="grid gap-2">
+            {fonts.length === 0 && <div className="card card-pad mut text-sm text-center">هنوز فونتی ثبت نشده است.</div>}
+            {fonts.map((f, i) => (
+              <div key={(f.family || '') + i} className="card px-4 py-3 flex items-center justify-between gap-3 text-sm">
+                <div className="min-w-0">
+                  <b className="block truncate" style={{ fontFamily: f.fileUrl ? "'" + f.family + "', Tahoma, sans-serif" : undefined }}>{f.name || f.family}</b>
+                  <span className="mut text-xs">{f.fileUrl ? 'فونت آپلودشده' : 'فونت گوگل'}</span>
+                </div>
+                <button className="btn-ghost !py-1 !px-2 text-xs shrink-0" onClick={() => delFont(i)}>حذف</button>
               </div>
             ))}
           </div>
