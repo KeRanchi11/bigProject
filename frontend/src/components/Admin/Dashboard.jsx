@@ -332,7 +332,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
               <label className="text-sm">تیتر (خط دوم)<input className="inp mt-1" value={aboutForm.headline2 || ''} onChange={(e) => setAboutForm({ ...aboutForm, headline2: e.target.value })} /></label>
               <label className="text-sm">توضیحات<textarea className="inp mt-1" rows={4} value={aboutForm.description || ''} onChange={(e) => setAboutForm({ ...aboutForm, description: e.target.value })} /></label>
               <div className="text-sm">تصویر
-                <div className="flex items-center gap-3 mt-2">
+            <div className="flex flex-wrap items-center gap-3 mt-2">
                   {aboutForm.image
                     ? <img src={aboutForm.image} alt="تصویر درباره ما" className="h-20 w-auto max-w-[220px] object-contain rounded-lg border" style={{ borderColor: 'var(--line)' }} />
                     : <span className="mut text-xs">بدون تصویر</span>}
@@ -393,8 +393,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
       )}
 
       {tab === 'settings' && (
-        <div className="card card-pad grid gap-3 max-w-xl">
-          <label className="text-sm">نام برند<input className="inp mt-1" value={brand} onChange={(e) => setBrand(e.target.value)} /></label>
+        <div className="card card-pad grid grid-cols-[minmax(0,1fr)] gap-3 max-w-xl">
+          <label className="text-sm min-w-0">نام برند<input className="inp mt-1" value={brand} onChange={(e) => setBrand(e.target.value)} /></label>
           <label className="text-sm">واتساپ (فقط عدد، مثل 989121234567)<input className="inp mt-1" value={wa} onChange={(e) => setWa(e.target.value)} dir="ltr" /></label>
           <div className="text-sm">لوگوی سایت (تک‌رکورد — آپلود جدید جایگزین قبلی می‌شود)
             <div className="flex items-center gap-3 mt-2">
@@ -409,7 +409,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
             </div>
           </div>
           <div className="text-sm">پالت رنگ سایت (برای همه کاربران)
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               {PALETTE_META.map((m) => (
                 <button key={m.id} type="button" title={m.name} aria-label={m.name} onClick={() => setPal(m.id)} className={'sw' + (pal === m.id ? ' on' : '')} style={{ background: m.dot }} />
               ))}
