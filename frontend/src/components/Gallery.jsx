@@ -57,7 +57,7 @@ export default function Gallery({ hook, likes, onOpen, notify, categories }) {
                       onClick={() => likes.toggle(p, p.likes)}
                       className="btn-ghost !px-2.5 !py-2 flex items-center gap-1 text-sm"
                     >
-                      <Heart size={16} fill={isLiked ? 'var(--acc)' : 'none'} color={isLiked ? 'var(--acc)' : 'currentColor'} />
+                      <Heart size={16} style={isLiked ? { fill: 'var(--acc)', stroke: 'var(--acc)' } : undefined} />
                       {faNum(count)}
                     </button>
                   </div>
