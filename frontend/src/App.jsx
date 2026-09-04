@@ -63,7 +63,7 @@ export default function App() {
         <main className="wrap page flow">
           <Hero content={content} onCta={() => scrollTo('contact')} onGallery={() => scrollTo('gallery')} />
           <FeaturedSlider items={allForSlider} onOpen={setSelectedId} />
-          <Gallery hook={projectsHook} likes={likes} onOpen={setSelectedId} notify={notify} />
+          <Gallery hook={projectsHook} likes={likes} onOpen={setSelectedId} notify={notify} categories={content.categories} />
           <About content={content} />
           <Contact content={content} notify={notify} />
         </main>
@@ -76,7 +76,7 @@ export default function App() {
           : <Login notify={notify} onOk={() => { setAdmin(true); notify('خوش آمدید'); }} />
       )}
 
-      <Footer content={content} admin={admin} onAdmin={() => scrollTo('admin')} onHome={() => scrollTo('top')} />
+      <Footer content={content} onAdmin={() => scrollTo('admin')} onHome={() => scrollTo('top')} isAdminPage={page === 'admin'} />
 
       <Lightbox
         project={selected}

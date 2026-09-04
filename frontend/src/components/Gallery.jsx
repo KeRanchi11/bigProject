@@ -2,10 +2,10 @@ import { Heart, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { faNum } from '../lib/pricing';
 
-export default function Gallery({ hook, likes, onOpen, notify }) {
+export default function Gallery({ hook, likes, onOpen, notify, categories }) {
   const { projects, total, page, setPage, limit, category, setCategory, sort, setSort, q, setQ, loading } = hook;
   const [box, setBox] = useState(q);
-  const cats = ['همه', 'نئون', 'سردر فروشگاه', 'حروف برجسته', 'بیلبورد'];
+  const cats = ['همه', ...((categories || []).filter((c) => typeof c === 'string' && c))];
 
   // debounce search -> server-side query (old version filtered huge list in memory)
   useEffect(() => {

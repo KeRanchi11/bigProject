@@ -78,6 +78,7 @@ export const api = {
   updateProject: (id, obj) => req('/api/admin/projects/' + encodeURIComponent(id), { method: 'PUT', body: obj }),
   deleteProject: (id) => req('/api/admin/projects/' + encodeURIComponent(id), { method: 'DELETE' }),
   reorder: (orders) => req('/api/admin/reorder', { method: 'POST', body: { orders } }),
+  renameCategory: (from, to) => req('/api/admin/categories/rename', { method: 'POST', body: { from, to } }),
   uploadImage: (file) => uploadFile('/api/upload', file),
   uploadFont: (file) => uploadFile('/api/upload-font', file),
   deleteFont: (url) => req('/api/admin/fonts', { method: 'DELETE', body: { url } }),

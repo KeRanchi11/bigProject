@@ -30,6 +30,7 @@ function route_key(string $method, string $path): string {
   if (preg_match('#^/admin/projects/([^/]+)$#u', $path)) return $method . ' /admin/projects_one';
   if ($path === '/admin/reorder') return 'POST /admin/reorder';
   if ($path === '/admin/fonts') return $method . ' /admin/fonts';
+  if ($path === '/admin/categories/rename') return 'POST /admin/categories/rename';
   return $method . ' ' . $path;
 }
 
@@ -222,6 +223,7 @@ try {
       if (!in_array((string)$k, $allow, true)) continue;
       $val = is_string($v) ? $v : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
       if ((string)$k === 'activePalette' && !in_array($val, ALLOWED_PALETTES, true)) continue;
+      if ((string)$k === 'categories' && !valid_categories($val)) continue;
       if (mb_strlen((string)$val) > 200000) continue;
       // sanitize URL-ish keys
       if (in_array((string)$k, ['logoUrl','aboutImage'], true)) $val = clean_url($val);
@@ -315,6 +317,19 @@ try {
     }
     $db->commit();
     json_ok(['success' => true]);
+  }
+
+  if ($rk === 'POST /admin/categories/rename') {
+    require_admin();
+    $b = read_json_body();
+    $from = clean_str($b['from'] ?? '', 100);
+    $to = clean_str($b['to'] ?? '', 100);
+    if ($from === '' || $to === '' || $from === $to || mb_strlen($to) > 60) json_err('invalid', 400);
+    $db = pdo();
+    // Atomic single-statement cascade: all projects move to the new name together.
+    $u = $db->prepare('UPDATE projects SET category = ? WHERE category = ?');
+    $u->execute([$to, $from]);
+    json_ok(['success' => true, 'moved' => $u->rowCount()]);
   }
 
   if ($rk === 'DELETE /admin/fonts') {

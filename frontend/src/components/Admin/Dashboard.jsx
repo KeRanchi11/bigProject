@@ -19,8 +19,13 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [logoBusy, setLogoBusy] = useState(false);
   const [fontQueue, setFontQueue] = useState([]);
   const [fontBusy, setFontBusy] = useState('');
+  const [newCat, setNewCat] = useState('');
+  const [editingCat, setEditingCat] = useState(null);
+  const [editCatVal, setEditCatVal] = useState('');
 
   const fonts = Array.isArray(content.signFonts) ? content.signFonts : [];
+  // Categories come from the database; hardcoded list is only a fallback.
+  const catList = Array.isArray(content.categories) && content.categories.length ? content.categories : CATS;
 
   const load = async () => {
     try {
@@ -41,8 +46,9 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
         image = j.url;
       }
       if (!image) { notify('تصویر لازم است (آپلود یا آدرس)'); setBusy(false); return; }
-      await api.createProject({ id: 'p_' + Date.now().toString(36), title: form.title.trim(), category: form.category, image, featured: form.featured });
-      setForm({ title: '', category: 'نئون', image: '', featured: false });
+      const category = catList.includes(form.category) ? form.category : (catList[0] || 'نئون');
+      await api.createProject({ id: 'p_' + Date.now().toString(36), title: form.title.trim(), category, image, featured: form.featured });
+      setForm({ title: '', category, image: '', featured: false });
       setFile(null);
       await load();
       notify('ذخیره شد');
@@ -62,9 +68,52 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     await load();
   };
 
+  const changeProjectCategory = async (p, category) => {
+    try {
+      await api.updateProject(p.id, { category });
+      await load();
+    } catch { notify('خطا در تغییر دسته‌بندی'); }
+  };
+
   const saveSettings = async () => {
     await onContent({ brandName: brand, whatsapp: wa, activePalette: pal });
     notify('تنظیمات ذخیره شد — پالت جدید برای همه اعمال شد');
+  };
+
+  // ---- categories (stored in DB via site_content) ----
+  const addCat = async (e) => {
+    e.preventDefault();
+    const name = newCat.trim().slice(0, 60);
+    if (!name) return;
+    if (catList.includes(name)) { notify('این دسته‌بندی وجود دارد'); return; }
+    if (catList.length >= 20) { notify('حداکثر ۲۰ دسته‌بندی'); return; }
+    await onContent({ categories: [...catList, name] });
+    setNewCat('');
+    notify('دسته‌بندی اضافه شد');
+  };
+
+  const saveRenameCat = async () => {
+    const to = editCatVal.trim().slice(0, 60);
+    const from = editingCat;
+    if (!to || !from) { setEditingCat(null); return; }
+    if (to === from) { setEditingCat(null); return; }
+    if (catList.includes(to)) { notify('این نام وجود دارد'); return; }
+    try {
+      const j = await api.renameCategory(from, to);
+      await onContent({ categories: catList.map((c) => (c === from ? to : c)) });
+      setEditingCat(null);
+      notify('ویرایش شد (' + (j.moved || 0) + ' پروژه منتقل شد)');
+      await load();
+    } catch { notify('خطا در ویرایش دسته‌بندی'); }
+  };
+
+  const delCat = async (name) => {
+    const used = rows.filter((p) => p.category === name).length;
+    if (!confirm(used > 0
+      ? '«' + name + '» در ' + used + ' پروژه استفاده شده و آن‌ها بدون دسته می‌مانند (در «همه» دیده می‌شوند). حذف شود؟'
+      : '«' + name + '» حذف شود؟')) return;
+    await onContent({ categories: catList.filter((c) => c !== name) });
+    notify('دسته‌بندی حذف شد');
   };
 
   // Single logo record: upload replaces logoUrl in DB; server deletes the old file.
@@ -136,7 +185,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   return (
     <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {[['projects', 'نمونه‌کارها'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
+        {[['projects', 'نمونه‌کارها'], ['cats', 'دسته‌بندی‌ها'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
         ))}
         <span className="grow" />
@@ -147,8 +196,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
         <>
           <form onSubmit={uploadThenCreate} className="card card-pad grid md:grid-cols-5 gap-2 mb-4">
             <input className="inp md:col-span-2" placeholder="عنوان نمونه‌کار" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            <select className="sel" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-              {CATS.map((c) => <option key={c}>{c}</option>)}
+            <select className="sel" value={catList.includes(form.category) ? form.category : (catList[0] || '')} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              {catList.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             <input className="inp" placeholder="آدرس تصویر (اختیاری اگر آپلود می‌کنید)" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} dir="ltr" />
             <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(e) => setFile(e.target.files?.[0] || null)} />
@@ -161,7 +210,13 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
                 <img src={p.image} alt={p.title} loading="lazy" className="gal-img !h-36" />
                 <div className="p-3 text-sm grid gap-2">
                   <b className="truncate">{p.title}</b>
-                  <span className="mut text-xs">{p.category} — ❤️ {p.likes}</span>
+                  <div className="flex items-center gap-2">
+                    <select className="sel !py-1 !px-2 text-xs" value={catList.includes(p.category) ? p.category : ''} onChange={(e) => changeProjectCategory(p, e.target.value)} aria-label="دسته‌بندی">
+                      {!catList.includes(p.category) && <option value={p.category}>{p.category} (قدیمی)</option>}
+                      {catList.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <span className="mut text-xs shrink-0">❤️ {p.likes}</span>
+                  </div>
                   <div className="flex gap-2">
                     <button className="btn-ghost !py-1 !px-2 text-xs" onClick={() => toggleFeat(p)}>{p.featured ? 'حذف از منتخب' : 'منتخب کن'}</button>
                     <button className="btn-ghost !py-1 !px-2 text-xs" onClick={() => del(p.id)}>حذف</button>
@@ -170,6 +225,39 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
               </div>
             ))}
           </div>
+        </>
+      )}
+
+      {tab === 'cats' && (
+        <>
+          <form onSubmit={addCat} className="card card-pad mb-4 flex gap-2">
+            <input className="inp" placeholder="نام دسته‌بندی جدید (مثلاً چلنیوم)" value={newCat} onChange={(e) => setNewCat(e.target.value)} maxLength={60} />
+            <button className="btn-acc shrink-0" type="submit">افزودن</button>
+          </form>
+          <div className="grid gap-2">
+            {catList.map((c) => {
+              const used = rows.filter((p) => p.category === c).length;
+              return (
+                <div key={c} className="card px-4 py-3 flex items-center gap-2 text-sm">
+                  {editingCat === c ? (
+                    <>
+                      <input className="inp" value={editCatVal} onChange={(e) => setEditCatVal(e.target.value)} maxLength={60} />
+                      <button className="btn-acc !py-1 !px-3 text-xs shrink-0" onClick={saveRenameCat}>ذخیره</button>
+                      <button className="btn-ghost !py-1 !px-3 text-xs shrink-0" onClick={() => setEditingCat(null)}>لغو</button>
+                    </>
+                  ) : (
+                    <>
+                      <b className="grow truncate">{c}</b>
+                      <span className="mut text-xs shrink-0">{used} پروژه</span>
+                      <button className="btn-ghost !py-1 !px-2 text-xs shrink-0" onClick={() => { setEditingCat(c); setEditCatVal(c); }}>ویرایش</button>
+                      <button className="btn-ghost !py-1 !px-2 text-xs shrink-0" onClick={() => delCat(c)}>حذف</button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="mut text-xs leading-6 mt-3">ویرایش نام، همه پروژه‌های آن دسته را هم منتقل می‌کند. با حذف، پروژه‌های قدیمی بدون دسته می‌مانند و فقط در «همه» دیده می‌شوند.</p>
         </>
       )}
 

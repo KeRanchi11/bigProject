@@ -7,6 +7,17 @@ const ALLOWED_CATEGORIES = ['نئون', 'سردر فروشگاه', 'حروف ب�
 const ALLOWED_SORTS = ['new', 'popular'];
 const ALLOWED_PALETTES = ['ember', 'ocean', 'forest', 'violet', 'gold', 'rose', 'teal', 'midnight'];
 
+function valid_categories(mixed $v): bool {
+  $arr = is_string($v) ? json_decode($v, true) : $v;
+  if (!is_array($arr) || $arr === [] || count($arr) > 20) return false;
+  foreach ($arr as $c) {
+    if (!is_string($c)) return false;
+    $c = trim($c);
+    if ($c === '' || mb_strlen($c) > 60) return false;
+  }
+  return true;
+}
+
 function valid_visitor(?string $id): bool {
   return is_string($id) && (bool)preg_match(VISITOR_RE, $id);
 }
