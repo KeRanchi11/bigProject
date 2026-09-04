@@ -65,11 +65,6 @@ export default function Gallery({ hook, likes, onOpen, notify, categories }) {
               );
             })}
           </div>
-          <div className="flex items-center justify-center gap-3 text-sm">
-            <button className="btn-ghost" disabled={page <= 1} onClick={() => setPage(page - 1)}>قبلی</button>
-            <span className="mut">صفحه {faNum(page)} از {faNum(pages)} — {faNum(total)} نمونه‌کار</span>
-            <button className="btn-ghost" disabled={page >= pages} onClick={() => setPage(page + 1)}>بعدی</button>
-          </div>
         </>
       )}
     </section>

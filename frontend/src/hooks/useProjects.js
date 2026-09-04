@@ -11,7 +11,7 @@ export function useProjects() {
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const limit = 24;
+  const limit = 100; // single-page gallery (server clamps to 60)
 
   const load = useCallback(async () => {
     setLoading(true);
