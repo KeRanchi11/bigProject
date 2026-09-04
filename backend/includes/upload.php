@@ -30,7 +30,9 @@ function store_image(array $file): string {
   // getimagesize blocks SVG-as-image / polyglot uploads served as image
   $info = @getimagesize($tmp);
   if ($info === false) json_err('bad_image', 415);
-  if ($info[0] < 8 || $info[1] < 8 || $info[0] > 8000 || $info[1] > 8000) json_err('bad_dimensions', 422);
+  // Lower bound only: files are stored and served as-is (never decoded server-side),
+  // so large design assets are fine; the 8MB cap already bounds abuse.
+  if ($info[0] < 8 || $info[1] < 8) json_err('bad_dimensions', 422);
   $name = bin2hex(random_bytes(8)) . $map[$mime];
   $dest = uploads_dir() . '/' . $name;
   if (!@move_uploaded_file($tmp, $dest)) json_err('write_failed', 500);

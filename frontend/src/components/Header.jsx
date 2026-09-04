@@ -25,9 +25,9 @@ export default function Header({ content, themeProps, onNav, onAdmin }) {
       <div className="wrap flex items-center justify-between py-3 gap-3">
         <button onClick={() => go('top')} className="flex items-center gap-2 font-extrabold text-lg">
           {content.logoUrl
-            ? <img src={content.logoUrl} alt={content.brandName} className="h-9 w-9 rounded-xl object-cover" />
+            ? <img src={content.logoUrl} alt={content.brandName} className="h-9 w-auto max-w-[180px] object-contain" />
             : <span className="grid place-items-center h-9 w-9 rounded-xl btn-acc"><Sparkles size={19} /></span>}
-          <span>{content.brandName || 'تابلوسازی ملکی'}</span>
+          {content.brandName ? <span>{content.brandName}</span> : null}
         </button>
         <nav className="hidden md:flex items-center gap-5 text-[15px]" aria-label="منوی اصلی">
           <button onClick={() => go('gallery')} className="mut hover:text-[var(--ink)]">نمونه‌کارها</button>
