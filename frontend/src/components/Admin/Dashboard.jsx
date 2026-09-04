@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { PALETTE_META } from '../ui/PalettePicker';
+import FileField from '../ui/FileField';
 
 const CATS = ['نئون', 'سردر فروشگاه', 'حروف برجسته', 'بیلبورد'];
 
@@ -260,7 +261,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
               {catList.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             <input className="inp" placeholder="آدرس تصویر (اختیاری اگر آپلود می‌کنید)" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} dir="ltr" />
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            <FileField accept="image/jpeg,image/png,image/webp,image/gif,image/avif" value={file} onChange={setFile} />
             <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> منتخب</label>
             <button className="btn-acc md:col-span-5" disabled={busy}>{busy ? 'در حال ذخیره…' : 'افزودن نمونه‌کار'}</button>
           </form>
@@ -335,7 +336,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
                   {aboutForm.image
                     ? <img src={aboutForm.image} alt="تصویر درباره ما" className="h-20 w-auto max-w-[220px] object-contain rounded-lg border" style={{ borderColor: 'var(--line)' }} />
                     : <span className="mut text-xs">بدون تصویر</span>}
-                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(e) => setAboutFile(e.target.files?.[0] || null)} />
+                  <FileField accept="image/jpeg,image/png,image/webp,image/gif,image/avif" value={aboutFile} onChange={setAboutFile} />
                 </div>
                 <div className="flex gap-2 mt-2">
                   <button className="btn-ghost !min-h-0 !py-2 !px-4 text-sm" disabled={!aboutFile} onClick={uploadAboutImage}>آپلود تصویر</button>
@@ -400,7 +401,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
               {content.logoUrl
                 ? <img src={content.logoUrl} alt="لوگوی سایت" className="h-14 w-auto max-w-[220px] object-contain rounded-lg border" style={{ borderColor: 'var(--line)' }} />
                 : <span className="mut text-xs">بدون لوگو (آیکون پیش‌فرض)</span>}
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+              <FileField accept="image/jpeg,image/png,image/webp,image/gif,image/avif" value={logoFile} onChange={setLogoFile} />
             </div>
             <div className="flex gap-2 mt-2">
               <button className="btn-acc !min-h-0 !py-2 !px-4 text-sm" disabled={!logoFile || logoBusy} onClick={uploadLogo}>{logoBusy ? '…' : 'آپلود و جایگزینی لوگو'}</button>
