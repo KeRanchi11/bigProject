@@ -37,23 +37,25 @@ export default function FontPreview({ content, onBack }) {
       </div>
       <p className="mut text-sm mb-3">مقایسه زنده در {shown.length} فونت</p>
       <style>{css}</style>
-      {shown.map((f) => (
-        <div key={f.family || f.name} className="card card-pad mb-3 text-center overflow-hidden">
-          <p className="mut text-xs mb-2">{f.name}</p>
-          <p
-            className="neon-demo break-words"
-            style={{
-              fontFamily: "'" + (f.family || 'Vazirmatn') + "', Vazirmatn, Tahoma, sans-serif",
-              fontSize: size,
-              color,
-              textShadow: glow ? '0 0 14px ' + color + '88, 0 0 44px ' + color + '55' : 'none'
-            }}
-          >
-            {text || '…'}
-          </p>
-          {!f.fileUrl && f.googleUrl && <link rel="stylesheet" href={f.googleUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />}
-        </div>
-      ))}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {shown.map((f) => (
+          <div key={f.family || f.name} className="card card-pad text-center overflow-hidden flex flex-col min-h-[220px]">
+            <p className="mut text-xs mb-2 shrink-0">{f.name}</p>
+            <p
+              className="neon-demo break-words grow grid place-items-center py-2"
+              style={{
+                fontFamily: "'" + (f.family || 'Vazirmatn') + "', Vazirmatn, Tahoma, sans-serif",
+                fontSize: size,
+                color,
+                textShadow: glow ? '0 0 14px ' + color + '88, 0 0 44px ' + color + '55' : 'none'
+              }}
+            >
+              {text || '…'}
+            </p>
+            {!f.fileUrl && f.googleUrl && <link rel="stylesheet" href={f.googleUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />}
+          </div>
+        ))}
+      </div>
       {shown.length === 0 && <div className="card card-pad mut text-sm text-center">فونتی با این نام پیدا نشد.</div>}
     </section>
   );
