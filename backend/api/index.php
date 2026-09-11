@@ -35,6 +35,7 @@ function route_key(string $method, string $path): string {
   if ($path === '/about') return $method . ' /about';
   if ($path === '/contact') return $method . ' /contact';
   if ($path === '/hero') return $method . ' /hero';
+  if ($path === '/footer') return $method . ' /footer';
   return $method . ' ' . $path;
 }
 
@@ -386,6 +387,47 @@ try {
     // Full-row upsert (no column defaults needed — safe on MySQL 5.7 too).
     $st = $db->prepare('INSERT INTO contact_content (id, eyebrow, headline1, headline2, description, whatsapp, instagram) VALUES (1, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE eyebrow = VALUES(eyebrow), headline1 = VALUES(headline1), headline2 = VALUES(headline2), description = VALUES(description), whatsapp = VALUES(whatsapp), instagram = VALUES(instagram)');
     $st->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['whatsapp'], $vals['instagram']]);
+    json_ok(['success' => true]);
+  }
+
+  // ---- Footer contact block (dedicated footer_content table, singleton id=1) ----
+  if ($rk === 'GET /footer') {
+    $db = pdo();
+    $r = $db->query('SELECT phone, phone_link, insta_label, insta_link, address, map_link FROM footer_content WHERE id = 1')->fetch();
+    json_ok(['footer' => $r ?: null]);
+  }
+
+  if ($rk === 'PUT /footer') {
+    require_admin();
+    $b = read_json_body();
+    if (!is_array($b)) json_err('invalid', 400);
+    $db = pdo();
+    $cur = $db->query('SELECT * FROM footer_content WHERE id = 1')->fetch();
+    $phone = array_key_exists('phone', $b) ? clean_str($b['phone'], 120) : (string)($cur['phone'] ?? '');
+    // Phone link: plain digits get tel: prefix; explicit tel: links pass through.
+    $pl = array_key_exists('phone_link', $b) ? preg_replace('/[\s\-()]/', '', (string)$b['phone_link']) : (string)($cur['phone_link'] ?? '');
+    if ($pl !== '' && !str_starts_with($pl, 'tel:')) $pl = 'tel:' . $pl;
+    if (!preg_match('/^(tel:\+?[0-9]{7,15})?$/', $pl)) json_err('invalid_phone_link', 400);
+    // Instagram link is forgiving: bare handles/domains get https:// so the icon survives.
+    $rawIg = array_key_exists('insta_link', $b) ? trim((string)$b['insta_link']) : (string)($cur['insta_link'] ?? '');
+    if ($rawIg !== '' && !preg_match('#^https?://#i', $rawIg)) {
+      if (preg_match('/^@?[A-Za-z0-9._]{1,30}$/', $rawIg)) {
+        $rawIg = 'https://instagram.com/' . ltrim($rawIg, '@');
+      } elseif (preg_match('#^(www\.)?instagram\.com/\S+$#i', $rawIg)) {
+        $rawIg = 'https://' . preg_replace('#^www\.#i', '', $rawIg);
+      }
+    }
+    $vals = [
+      'phone' => $phone,
+      'phone_link' => $pl,
+      'insta_label' => array_key_exists('insta_label', $b) ? clean_str($b['insta_label'], 120) : (string)($cur['insta_label'] ?? ''),
+      'insta_link' => clean_url($rawIg, 500),
+      'address' => array_key_exists('address', $b) ? clean_str($b['address'], 500) : (string)($cur['address'] ?? ''),
+      'map_link' => array_key_exists('map_link', $b) ? clean_url($b['map_link'], 2000) : (string)($cur['map_link'] ?? ''),
+    ];
+    // Full-row upsert (no column defaults needed — safe on MySQL 5.7 too).
+    $st = $db->prepare('INSERT INTO footer_content (id, phone, phone_link, insta_label, insta_link, address, map_link) VALUES (1, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE phone = VALUES(phone), phone_link = VALUES(phone_link), insta_label = VALUES(insta_label), insta_link = VALUES(insta_link), address = VALUES(address), map_link = VALUES(map_link)');
+    $st->execute([$vals['phone'], $vals['phone_link'], $vals['insta_label'], $vals['insta_link'], $vals['address'], $vals['map_link']]);
     json_ok(['success' => true]);
   }
 

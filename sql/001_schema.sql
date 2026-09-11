@@ -95,3 +95,16 @@ CREATE TABLE IF NOT EXISTS hero_content (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT chk_hero_single CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dedicated single-row table for the footer contact block (one section, one table).
+CREATE TABLE IF NOT EXISTS footer_content (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  phone VARCHAR(120) NOT NULL DEFAULT '',
+  phone_link VARCHAR(120) NOT NULL DEFAULT '',
+  insta_label VARCHAR(120) NOT NULL DEFAULT '',
+  insta_link TEXT NOT NULL,
+  address VARCHAR(500) NOT NULL DEFAULT '',
+  map_link TEXT NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_footer_single CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

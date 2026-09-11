@@ -51,6 +51,7 @@ function db_init_tables(): void {
   migrate_about_once();
   migrate_contact_once();
   migrate_hero_once();
+  migrate_footer_once();
 }
 
 // One-time, non-destructive: copy About texts into the dedicated table on first run.
@@ -120,6 +121,15 @@ function migrate_hero_once(): void {
   }
   $ins = $db->prepare('INSERT INTO hero_content (id, eyebrow, headline1, headline2, description, cta, proof_number, proof_text, neon_small, neon_line1, neon_line2, chip1, chip2) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
   $ins->execute([$vals['eyebrow'], $vals['headline1'], $vals['headline2'], $vals['description'], $vals['cta'], $vals['proof_number'], $vals['proof_text'], $vals['neon_small'], $vals['neon_line1'], $vals['neon_line2'], $vals['chip1'], $vals['chip2']]);
+}
+
+// One-time, non-destructive: create the (empty) footer row on first run.
+// The footer shows only what the admin fills in; old data is untouched.
+function migrate_footer_once(): void {
+  $db = pdo();
+  $n = (int)$db->query('SELECT COUNT(*) AS c FROM footer_content')->fetch()['c'];
+  if ($n > 0) return;
+  $db->exec("INSERT INTO footer_content (id, phone, phone_link, insta_label, insta_link, address, map_link) VALUES (1, '', '', '', '', '', '')");
 }
 
 function inline_schema(): string {
@@ -205,6 +215,17 @@ CREATE TABLE IF NOT EXISTS hero_content (
   chip2 VARCHAR(120) NOT NULL DEFAULT '',
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT chk_hero_single CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS footer_content (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  phone VARCHAR(120) NOT NULL DEFAULT '',
+  phone_link VARCHAR(120) NOT NULL DEFAULT '',
+  insta_label VARCHAR(120) NOT NULL DEFAULT '',
+  insta_link TEXT NOT NULL,
+  address VARCHAR(500) NOT NULL DEFAULT '',
+  map_link TEXT NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_footer_single CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL;
 }

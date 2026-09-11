@@ -14,6 +14,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [cur, setCur] = useState('');
   const [nw, setNw] = useState('');
   const [brand, setBrand] = useState(content.brandName || '');
+  const [slogan, setSlogan] = useState(content.slogan || '');
+  const [copyright, setCopyright] = useState(content.copyright || '');
   const [wa, setWa] = useState(content.whatsapp || '');
   const [pal, setPal] = useState(content.activePalette || 'ember');
   const [logoFile, setLogoFile] = useState(null);
@@ -23,6 +25,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [aboutBusy, setAboutBusy] = useState(false);
   const [contactForm, setContactForm] = useState(null);
   const [contactBusy, setContactBusy] = useState(false);
+  const [footerForm, setFooterForm] = useState(null);
+  const [footerBusy, setFooterBusy] = useState(false);
   const [heroForm, setHeroForm] = useState(null);
   const [heroBusy, setHeroBusy] = useState(false);
   const [fontQueue, setFontQueue] = useState([]);
@@ -45,6 +49,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     load();
     api.getAbout().then((j) => { if (j.about) setAboutForm({ ...j.about }); }).catch(() => {});
     api.getContact().then((j) => { if (j.contact) setContactForm({ ...j.contact }); }).catch(() => {});
+    api.getFooter().then((j) => { if (j.footer) setFooterForm({ ...j.footer }); }).catch(() => {});
     api.getHero().then((j) => { if (j.hero) setHeroForm({ ...j.hero }); }).catch(() => {});
   }, []);
 
@@ -89,7 +94,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   };
 
   const saveSettings = async () => {
-    await onContent({ brandName: brand, whatsapp: wa, activePalette: pal });
+    await onContent({ brandName: brand, slogan, copyright, whatsapp: wa, activePalette: pal });
     notify('تنظیمات ذخیره شد — پالت جدید برای همه اعمال شد');
   };
 
@@ -199,6 +204,29 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
     finally { setContactBusy(false); }
   };
 
+  // Footer contact block lives in its dedicated footer_content table.
+  const saveFooter = async () => {
+    if (!footerForm || footerBusy) return;
+    setFooterBusy(true);
+    try {
+      const instaLabel = String(footerForm.insta_label || '').slice(0, 120);
+      const instaLink = String(footerForm.insta_link || '').slice(0, 500)
+        || (instaLabel ? 'https://instagram.com/' + instaLabel.replace(/^@/, '') : '');
+      await api.saveFooter({
+        phone: String(footerForm.phone || '').slice(0, 120),
+        phone_link: String(footerForm.phone_link || '').slice(0, 120),
+        insta_label: instaLabel,
+        insta_link: instaLink,
+        address: String(footerForm.address || '').slice(0, 500),
+        map_link: String(footerForm.map_link || '').slice(0, 2000)
+      });
+      notify('فوتر ذخیره شد');
+    } catch (err) {
+      notify(err.code === 'invalid_phone_link' ? 'لینک تلفن معتبر نیست (فقط عدد، مثل 989121234567)' : 'خطا در ذخیره');
+    }
+    finally { setFooterBusy(false); }
+  };
+
   // Hero section lives in its dedicated hero_content table.
   const saveHero = async () => {
     if (!heroForm || heroBusy) return;
@@ -273,7 +301,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   return (
     <section className="wrap page">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {[['projects', 'نمونه‌کارها'], ['hero', 'هیرو'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['contact', 'تماس'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
+        {[['projects', 'نمونه‌کارها'], ['hero', 'هیرو'], ['cats', 'دسته‌بندی‌ها'], ['about', 'درباره ما'], ['contact', 'تماس'], ['footer', 'فوتر'], ['fonts', 'فونت‌ها'], ['settings', 'تنظیمات سایت'], ['password', 'رمز عبور']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={'chip' + (tab === k ? ' on' : '')}>{label}</button>
         ))}
         <span className="grow" />
@@ -419,6 +447,23 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
         </div>
       )}
 
+      {tab === 'footer' && (
+        <div className="card card-pad grid gap-3 max-w-xl">
+          <h3 className="font-extrabold">بلوک تماس فوتر <span className="mut font-normal text-sm">(جدول اختصاصی footer_content)</span></h3>
+          {!footerForm ? <p className="mut text-sm">در حال بارگذاری…</p> : (
+            <>
+              <label className="text-sm">شماره تماس (نمایشی)<input className="inp mt-1" value={footerForm.phone || ''} onChange={(e) => setFooterForm({ ...footerForm, phone: e.target.value })} placeholder="۰۲۱-۱۲۳۴۵۶۷۸" /></label>
+              <label className="text-sm">لینک تماس (فقط عدد، مثل 989121234567 — خودکار tel: می‌شود)<input className="inp mt-1" value={footerForm.phone_link || ''} onChange={(e) => setFooterForm({ ...footerForm, phone_link: e.target.value })} dir="ltr" /></label>
+              <label className="text-sm">اینستاگرام (نمایشی)<input className="inp mt-1" value={footerForm.insta_label || ''} onChange={(e) => setFooterForm({ ...footerForm, insta_label: e.target.value })} dir="ltr" placeholder="@maleki.sign" /></label>
+              <label className="text-sm">لینک اینستاگرام (آدرس کامل)<input className="inp mt-1" value={footerForm.insta_link || ''} onChange={(e) => setFooterForm({ ...footerForm, insta_link: e.target.value })} dir="ltr" placeholder="https://instagram.com/..." /></label>
+              <label className="text-sm">آدرس مغازه<textarea className="inp mt-1" rows={2} value={footerForm.address || ''} onChange={(e) => setFooterForm({ ...footerForm, address: e.target.value })} /></label>
+              <label className="text-sm">لینک نقشه (اختیاری)<input className="inp mt-1" value={footerForm.map_link || ''} onChange={(e) => setFooterForm({ ...footerForm, map_link: e.target.value })} dir="ltr" placeholder="https://maps.google.com/..." /></label>
+              <button className="btn-acc" disabled={footerBusy} onClick={saveFooter}>{footerBusy ? '…' : 'ذخیره فوتر'}</button>
+            </>
+          )}
+        </div>
+      )}
+
       {tab === 'fonts' && (
         <>
           <div className="card card-pad mb-4 grid gap-3">
@@ -447,6 +492,8 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
       {tab === 'settings' && (
         <div className="card card-pad grid grid-cols-[minmax(0,1fr)] gap-3 max-w-xl">
           <label className="text-sm min-w-0">نام برند<input className="inp mt-1" value={brand} onChange={(e) => setBrand(e.target.value)} /></label>
+          <label className="text-sm">شعار (زیر نام برند در فوتر)<input className="inp mt-1" value={slogan} onChange={(e) => setSlogan(e.target.value)} /></label>
+          <label className="text-sm">متن کپی‌رایت فوتر<input className="inp mt-1" value={copyright} onChange={(e) => setCopyright(e.target.value)} /></label>
           <label className="text-sm">واتساپ (فقط عدد، مثل 989121234567)<input className="inp mt-1" value={wa} onChange={(e) => setWa(e.target.value)} dir="ltr" /></label>
           <div className="text-sm">لوگوی سایت (تک‌رکورد — آپلود جدید جایگزین قبلی می‌شود)
             <div className="flex items-center gap-3 mt-2">
