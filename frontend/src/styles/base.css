@@ -66,8 +66,8 @@ section[id] { scroll-margin-top: 84px; }
 .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); padding: 11px 18px; }
 .inp, .sel { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; width: 100%; }
 .mut { color: var(--mut); }
-.site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--line); }
-.site-header.scrolled { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); }
+.site-header { position: sticky; top: 0; z-index: 50; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); background: color-mix(in srgb, var(--bg) 85%, transparent); border-bottom: 1px solid var(--line); }
+.site-header.scrolled { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); background: color-mix(in srgb, var(--bg) 95%, transparent); }
 .grid-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--gap-grid); }
 .gal-img { width: 100%; height: clamp(180px, 42vw, 230px); object-fit: cover; border-radius: 12px 12px 0 0; display: block; }
 .chip { display: inline-flex; align-items: center; min-height: 40px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; }

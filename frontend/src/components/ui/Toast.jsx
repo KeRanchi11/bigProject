@@ -11,7 +11,7 @@ export default function Toast({ toast }) {
   }, [toast]);
   if (!toast || !show) return null;
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 card px-5 py-3 text-sm" role="status">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] card px-5 py-3 text-sm" role="status">
       {toast}
     </div>
   );

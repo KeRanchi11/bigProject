@@ -15,7 +15,7 @@ export default function Lightbox({ project, all, liked, count, onClose, onPrev, 
 
   if (!project) return null;
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center p-4" style={{ background: 'rgba(0,0,0,.65)' }} onClick={onClose} role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[60] grid place-items-center p-4" style={{ background: 'rgba(0,0,0,.65)' }} onClick={onClose} role="dialog" aria-modal="true">
       <div className="card max-w-3xl w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="relative">
           <img src={project.image} alt={project.title} className="w-full max-h-[60vh] object-contain bg-black" />

@@ -398,7 +398,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
 
           {/* ── Edit Project Modal ── */}
           {editProject && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }} onClick={(e) => { if (e.target === e.currentTarget) cancelEdit(); }}>
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }} onClick={(e) => { if (e.target === e.currentTarget) cancelEdit(); }}>
               <div className="card card-pad w-full max-w-lg grid gap-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-extrabold text-lg">ویرایش نمونه‌کار</h3>

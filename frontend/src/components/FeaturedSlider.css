@@ -1,0 +1,158 @@
+/* GSAP 3D Coverflow Carousel Perspective Styles */
+
+.coverflow-container {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  user-select: none;
+  -webkit-user-select: none;
+  isolation: isolate;
+  z-index: 1;
+}
+
+.coverflow-stage-wrapper {
+  position: relative;
+  width: 100%;
+  height: clamp(400px, 54vh, 560px);
+  margin: 0 auto;
+  border-radius: calc(var(--radius) * 1.2);
+  background: radial-gradient(120% 120% at 50% 10%, var(--card) 0%, var(--bg) 95%);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+}
+
+.coverflow-stage-wrapper.is-grabbing {
+  cursor: grabbing;
+}
+
+/* Ambient glow in center behind active card */
+.coverflow-ambient-glow {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(580px, 85%);
+  height: 220px;
+  background: radial-gradient(ellipse at center, var(--glow) 0%, transparent 72%);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(48px);
+}
+
+/* Dynamic theme edge fades (fade smoothly into current palette background) */
+.coverflow-edge-left,
+.coverflow-edge-right {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(70px, 14vw, 240px);
+  z-index: 15;
+  pointer-events: none;
+}
+
+.coverflow-edge-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
+}
+
+.coverflow-edge-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
+}
+
+/* 3D stage and cards */
+.coverflow-stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  perspective-origin: 50% 50%;
+  z-index: 10;
+}
+
+.coverflow-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 30px 60px -18px rgba(0, 0, 0, 0.65),
+    0 10px 24px -10px rgba(0, 0, 0, 0.45);
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.coverflow-card.is-active-card {
+  border-color: var(--acc);
+  box-shadow:
+    0 38px 75px -18px rgba(0, 0, 0, 0.75),
+    0 0 30px var(--glow),
+    0 0 0 1px var(--acc);
+}
+
+.coverflow-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* High-end specular sheen on 3D rotation */
+.coverflow-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 50%);
+  pointer-events: none;
+}
+
+/* Drag hint pill */
+.coverflow-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--mut);
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 4px 14px;
+  border-radius: 9999px;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  opacity: 0.85;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Navigation button pulse/glow */
+.coverflow-nav-btn {
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  transition: all 0.2s ease;
+}
+
+.coverflow-nav-btn:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+  box-shadow: 0 0 15px var(--glow);
+  transform: scale(1.06);
+}
+
+.coverflow-nav-btn:active {
+  transform: scale(0.96);
+}
