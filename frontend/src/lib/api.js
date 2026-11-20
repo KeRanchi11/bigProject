@@ -65,9 +65,14 @@ export const api = {
     return req('/api/projects?' + q.toString());
   },
   project: (id) => req('/api/projects/' + encodeURIComponent(id)),
-  like: (projectId, visitorId, liked) =>
-    req('/api/likes', { method: 'POST', body: { projectId, visitorId, liked } }),
-  myLikes: (visitorId) => req('/api/me/likes?visitorId=' + encodeURIComponent(visitorId)),
+  like: (projectId, visitorId, liked, legacyId) =>
+    req('/api/likes', { method: 'POST', body: { projectId, visitorId, liked, legacyId } }),
+  myLikes: (visitorId, legacyId, raw) => {
+    let url = '/api/me/likes?visitorId=' + encodeURIComponent(visitorId);
+    if (legacyId) url += '&legacyId=' + encodeURIComponent(legacyId);
+    if (raw) url += '&raw=' + encodeURIComponent(raw);
+    return req(url);
+  },
   content: () => req('/api/content'),
   saveContent: (obj) => req('/api/content', { method: 'POST', body: obj }),
   getAbout: () => req('/api/about'),

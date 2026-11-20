@@ -117,27 +117,44 @@ try {
     $body = $method === 'GET' ? $_GET : array_merge($_GET, read_json_body());
     $pid = clean_str($body['projectId'] ?? $body['id'] ?? '', 64);
     $visitor = clean_str($body['visitorId'] ?? ($_SERVER['HTTP_X_VISITOR_ID'] ?? ''), 64);
+    $legacy = clean_str($body['legacyId'] ?? ($_GET['legacyId'] ?? ''), 64);
+    $ip = get_client_ip();
     if (!valid_project_id($pid)) json_err('invalid_id', 400);
     if (!valid_visitor($visitor)) json_err('invalid_visitor', 400);
     if (!rate_limit("like:$visitor:$pid", 30, 60)) json_err('rate_limited', 429, ['retryAfter' => 60]);
     $db = pdo();
+    if ($legacy !== '' && valid_visitor($legacy) && $legacy !== $visitor) {
+      $up = $db->prepare('UPDATE IGNORE project_likes SET visitor_id = ? WHERE visitor_id = ?');
+      $up->execute([$visitor, $legacy]);
+      $del = $db->prepare('DELETE FROM project_likes WHERE visitor_id = ?');
+      $del->execute([$legacy]);
+    }
     $e = $db->prepare('SELECT id FROM projects WHERE id = ?');
     $e->execute([$pid]);
     if (!$e->fetch()) json_err('not_found', 404);
+
+    $mine = $db->prepare('SELECT 1 FROM project_likes WHERE project_id = ? AND (visitor_id = ? OR (ip_address = ? AND ip_address != "" AND (visitor_id = ? OR visitor_id LIKE "df_%"))) LIMIT 1');
+    $mine->execute([$pid, $visitor, $ip, $visitor]);
+    $isCurrentlyLiked = (bool)$mine->fetch();
+
     if ($method === 'GET') {
       $s = $db->prepare('SELECT COUNT(*) c FROM project_likes WHERE project_id = ?');
       $s->execute([$pid]);
-      $mine = $db->prepare('SELECT 1 FROM project_likes WHERE project_id = ? AND visitor_id = ?');
-      $mine->execute([$pid, $visitor]);
-      json_ok(['count' => (int)$s->fetch()['c'], 'liked' => (bool)$mine->fetch()]);
+      json_ok(['count' => (int)$s->fetch()['c'], 'liked' => $isCurrentlyLiked]);
     }
+
     $liked = !empty($body['liked']) && $body['liked'] !== '0' && $body['liked'] !== false;
     if ($liked) {
-      $ins = $db->prepare('INSERT IGNORE INTO project_likes (project_id, visitor_id) VALUES (?, ?)');
-      $ins->execute([$pid, $visitor]);
+      if (!$isCurrentlyLiked) {
+        $ins = $db->prepare('INSERT INTO project_likes (project_id, visitor_id, ip_address) VALUES (?, ?, ?)');
+        $ins->execute([$pid, $visitor, $ip]);
+      } else {
+        $up = $db->prepare('UPDATE IGNORE project_likes SET visitor_id = ?, ip_address = ? WHERE project_id = ? AND (visitor_id = ? OR (ip_address = ? AND ip_address != ""))');
+        $up->execute([$visitor, $ip, $pid, $visitor, $ip]);
+      }
     } else {
-      $del = $db->prepare('DELETE FROM project_likes WHERE project_id = ? AND visitor_id = ?');
-      $del->execute([$pid, $visitor]);
+      $del = $db->prepare('DELETE FROM project_likes WHERE project_id = ? AND (visitor_id = ? OR (ip_address = ? AND ip_address != "" AND (visitor_id = ? OR visitor_id LIKE "df_%")))');
+      $del->execute([$pid, $visitor, $ip, $visitor]);
     }
     $s = $db->prepare('SELECT COUNT(*) c FROM project_likes WHERE project_id = ?');
     $s->execute([$pid]);
@@ -146,11 +163,27 @@ try {
 
   if ($rk === 'GET /me/likes') {
     $visitor = clean_str($_SERVER['HTTP_X_VISITOR_ID'] ?? ($_GET['visitorId'] ?? ''), 64);
+    $ip = get_client_ip();
     if (!valid_visitor($visitor)) json_err('invalid_visitor', 400);
+    $legacy = clean_str($_GET['legacyId'] ?? '', 64);
     $db = pdo();
-    $st = $db->prepare('SELECT project_id FROM project_likes WHERE visitor_id = ?');
-    $st->execute([$visitor]);
-    json_ok(['liked' => array_column($st->fetchAll(), 'project_id')]);
+    if ($legacy !== '' && valid_visitor($legacy) && $legacy !== $visitor) {
+      $up = $db->prepare('UPDATE IGNORE project_likes SET visitor_id = ? WHERE visitor_id = ?');
+      $up->execute([$visitor, $legacy]);
+      $del = $db->prepare('DELETE FROM project_likes WHERE visitor_id = ?');
+      $del->execute([$legacy]);
+    }
+    $st = $db->prepare('SELECT DISTINCT project_id FROM project_likes WHERE visitor_id = ? OR (ip_address = ? AND ip_address != "" AND (visitor_id = ? OR visitor_id LIKE "df_%"))');
+    $st->execute([$visitor, $ip, $visitor]);
+    $liked = array_column($st->fetchAll(), 'project_id');
+
+    $counts = [];
+    $cs = $db->query('SELECT project_id, COUNT(*) as c FROM project_likes GROUP BY project_id')->fetchAll();
+    foreach ($cs as $row) {
+      $counts[$row['project_id']] = (int)$row['c'];
+    }
+
+    json_ok(['liked' => $liked, 'counts' => $counts]);
   }
 
   if ($rk === 'GET /content') {

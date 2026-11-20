@@ -58,3 +58,19 @@ function page_int(mixed $v, int $def, int $min, int $max): int {
   if ($n > $max) return $max;
   return $n;
 }
+
+function get_client_ip(): string {
+  $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
+  foreach ($headers as $k) {
+    if (!empty($_SERVER[$k])) {
+      $ip = trim(explode(',', (string)$_SERVER[$k])[0]);
+      if (filter_var($ip, FILTER_VALIDATE_IP)) {
+        if ($ip === '::1' || $ip === 'localhost') return '127.0.0.1';
+        return $ip;
+      }
+    }
+  }
+  $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+  if ($ip === '::1' || $ip === 'localhost') return '127.0.0.1';
+  return $ip;
+}

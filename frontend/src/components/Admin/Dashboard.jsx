@@ -11,6 +11,12 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
   const [form, setForm] = useState({ title: '', category: 'نئون', image: '', featured: false });
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
+  /* ── edit-project modal state ── */
+  const [editProject, setEditProject] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', category: '', image: '', featured: false });
+  const [editFile, setEditFile] = useState(null);
+  const [editBusy, setEditBusy] = useState(false);
+  /* ────────────────────────────── */
   const [cur, setCur] = useState('');
   const [nw, setNw] = useState('');
   const [brand, setBrand] = useState(content.brandName || '');
@@ -92,6 +98,53 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
       await load();
     } catch { notify('خطا در تغییر دسته‌بندی'); }
   };
+
+  /* ── open / save / cancel edit ── */
+  const openEdit = (p) => {
+    setEditProject(p);
+    setEditForm({
+      title: p.title || '',
+      category: p.category || catList[0] || '',
+      image: p.image || '',
+      featured: !!p.featured,
+    });
+    setEditFile(null);
+    setEditBusy(false);
+  };
+
+  const cancelEdit = () => {
+    setEditProject(null);
+    setEditFile(null);
+    setEditBusy(false);
+  };
+
+  const saveEdit = async () => {
+    if (!editProject) return;
+    if (!editForm.title.trim()) { notify('عنوان لازم است'); return; }
+    setEditBusy(true);
+    try {
+      let image = editForm.image.trim();
+      // If a new file was chosen, upload it first
+      if (editFile) {
+        const j = await api.uploadImage(editFile);
+        image = j.url;
+      }
+      if (!image) { notify('تصویر لازم است'); setEditBusy(false); return; }
+      const category = catList.includes(editForm.category) ? editForm.category : (catList[0] || 'نئون');
+      await api.updateProject(editProject.id, {
+        title: editForm.title.trim(),
+        category,
+        image,
+        featured: editForm.featured,
+      });
+      cancelEdit();
+      await load();
+      notify('پروژه ویرایش شد');
+    } catch (err) {
+      notify('خطا: ' + (err.message || 'update_failed'));
+    } finally { setEditBusy(false); }
+  };
+  /* ─────────────────────────────── */
 
   const saveSettings = async () => {
     await onContent({ brandName: brand, slogan, copyright, whatsapp: wa, activePalette: pal });
@@ -334,6 +387,7 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
                     <span className="mut text-xs shrink-0">❤️ {p.likes}</span>
                   </div>
                   <div className="flex gap-2">
+                    <button className="btn-ghost !py-1 !px-2 text-xs" onClick={() => openEdit(p)}>✏️ ویرایش</button>
                     <button className="btn-ghost !py-1 !px-2 text-xs" onClick={() => toggleFeat(p)}>{p.featured ? 'حذف از منتخب' : 'منتخب کن'}</button>
                     <button className="btn-ghost !py-1 !px-2 text-xs" onClick={() => del(p.id)}>حذف</button>
                   </div>
@@ -341,6 +395,69 @@ export default function Dashboard({ content, onContent, notify, onExit }) {
               </div>
             ))}
           </div>
+
+          {/* ── Edit Project Modal ── */}
+          {editProject && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }} onClick={(e) => { if (e.target === e.currentTarget) cancelEdit(); }}>
+              <div className="card card-pad w-full max-w-lg grid gap-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-extrabold text-lg">ویرایش نمونه‌کار</h3>
+                  <button className="btn-ghost !py-1 !px-2 text-lg" onClick={cancelEdit} aria-label="بستن">✕</button>
+                </div>
+
+                {/* Current image preview */}
+                <div className="text-sm">
+                  <span className="mut">تصویر فعلی:</span>
+                  <div className="mt-2 rounded-lg overflow-hidden border" style={{ borderColor: 'var(--line)' }}>
+                    <img src={editFile ? URL.createObjectURL(editFile) : editForm.image} alt={editForm.title} className="w-full h-48 object-cover" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <label className="text-sm">
+                  عنوان
+                  <input className="inp mt-1" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </label>
+
+                {/* Category */}
+                <label className="text-sm">
+                  دسته‌بندی
+                  <select className="sel mt-1" value={catList.includes(editForm.category) ? editForm.category : (catList[0] || '')} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}>
+                    {!catList.includes(editForm.category) && <option value={editForm.category}>{editForm.category} (قدیمی)</option>}
+                    {catList.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </label>
+
+                {/* Image URL */}
+                <label className="text-sm">
+                  آدرس تصویر
+                  <input className="inp mt-1" dir="ltr" value={editForm.image} onChange={(e) => { setEditForm({ ...editForm, image: e.target.value }); setEditFile(null); }} />
+                </label>
+
+                {/* Upload new image */}
+                <div className="text-sm">
+                  یا آپلود تصویر جدید:
+                  <div className="mt-1">
+                    <FileField accept="image/jpeg,image/png,image/webp,image/gif,image/avif" value={editFile} onChange={(f) => setEditFile(f)} />
+                  </div>
+                </div>
+
+                {/* Featured toggle */}
+                <label className="text-sm flex items-center gap-2">
+                  <input type="checkbox" checked={editForm.featured} onChange={(e) => setEditForm({ ...editForm, featured: e.target.checked })} />
+                  منتخب
+                </label>
+
+                {/* Action buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button className="btn-acc grow" disabled={editBusy} onClick={saveEdit}>
+                    {editBusy ? 'در حال ذخیره…' : '💾 ذخیره تغییرات'}
+                  </button>
+                  <button className="btn-ghost" onClick={cancelEdit} disabled={editBusy}>انصراف</button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 
